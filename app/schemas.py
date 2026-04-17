@@ -24,9 +24,130 @@ NUMERIC_FIELDS = [
     "surface_pressure",
 ]
 
+ZONE_SAMPLE_EXAMPLE_MINIMAL = {
+    "point_id": "A1",
+    "ph": 6.5,
+    "nitrogen": 100.0,
+    "phosphorus": 40.0,
+    "potassium": 70.0,
+    "zinc": 1.2,
+    "sulfur": 10.0,
+}
+
+ZONE_SAMPLE_EXAMPLE_EXTENDED = {
+    "point_id": "A1",
+    "soil_color": "reddish brown",
+    "ph": 6.5,
+    "nitrogen": 100.0,
+    "phosphorus": 40.0,
+    "potassium": 70.0,
+    "zinc": 1.2,
+    "sulfur": 10.0,
+    "soil_moisture_surface": 0.68,
+    "wind_speed_10m": 2.4,
+    "specific_humidity_mean": 10.8,
+    "temperature_mean": 19.3,
+    "temperature_seasonal_range": 23.7,
+    "rainfall_mean": 6.2,
+    "rainfall_total_proxy": 24.8,
+    "cloud_amount": 51.0,
+    "surface_pressure": 79.4,
+}
+
+ZONE_PREDICTION_REQUEST_OPENAPI_EXAMPLES = {
+    "minimal_zone_request": {
+        "summary": "Contoh minimal dengan fitur tanah inti",
+        "description": (
+            "Contoh request paling minimal yang tetap valid untuk model zona aktif. "
+            "Fitur opsional akan diimputasi oleh preprocessing pipeline."
+        ),
+        "value": {
+            "zone_id": "zona_a",
+            "top_k": 3,
+            "samples": [
+                ZONE_SAMPLE_EXAMPLE_MINIMAL,
+                {
+                    "point_id": "A2",
+                    "ph": 6.4,
+                    "nitrogen": 102.0,
+                    "phosphorus": 39.0,
+                    "potassium": 68.0,
+                    "zinc": 1.1,
+                    "sulfur": 11.0,
+                },
+                {
+                    "point_id": "A3",
+                    "ph": 6.6,
+                    "nitrogen": 98.0,
+                    "phosphorus": 41.0,
+                    "potassium": 72.0,
+                    "zinc": 1.3,
+                    "sulfur": 9.0,
+                },
+            ],
+        },
+    },
+    "extended_zone_request": {
+        "summary": "Contoh lengkap dengan fitur opsional",
+        "description": (
+            "Contoh request yang lebih lengkap dan lebih dekat dengan feature contract model zona. "
+            "Ini cocok dipakai untuk uji coba di Swagger UI."
+        ),
+        "value": {
+            "zone_id": "zona_b",
+            "top_k": 3,
+            "samples": [
+                ZONE_SAMPLE_EXAMPLE_EXTENDED,
+                {
+                    "point_id": "B2",
+                    "soil_color": "reddish brown",
+                    "ph": 6.4,
+                    "nitrogen": 101.0,
+                    "phosphorus": 39.5,
+                    "potassium": 69.5,
+                    "zinc": 1.1,
+                    "sulfur": 10.5,
+                    "soil_moisture_surface": 0.66,
+                    "wind_speed_10m": 2.5,
+                    "specific_humidity_mean": 10.7,
+                    "temperature_mean": 19.1,
+                    "temperature_seasonal_range": 23.5,
+                    "rainfall_mean": 6.1,
+                    "rainfall_total_proxy": 24.4,
+                    "cloud_amount": 50.0,
+                    "surface_pressure": 79.2,
+                },
+                {
+                    "point_id": "B3",
+                    "soil_color": "red",
+                    "ph": 6.6,
+                    "nitrogen": 99.0,
+                    "phosphorus": 40.5,
+                    "potassium": 71.0,
+                    "zinc": 1.2,
+                    "sulfur": 9.5,
+                    "soil_moisture_surface": 0.69,
+                    "wind_speed_10m": 2.3,
+                    "specific_humidity_mean": 10.9,
+                    "temperature_mean": 19.4,
+                    "temperature_seasonal_range": 23.8,
+                    "rainfall_mean": 6.3,
+                    "rainfall_total_proxy": 25.2,
+                    "cloud_amount": 52.0,
+                    "surface_pressure": 79.5,
+                },
+            ],
+        },
+    },
+}
+
 
 class ZoneSample(BaseModel):
-    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    model_config = ConfigDict(
+        extra="forbid",
+        str_strip_whitespace=True,
+        json_schema_extra={"example": ZONE_SAMPLE_EXAMPLE_EXTENDED},
+    )
 
     point_id: str = Field(..., min_length=1, description="Unique point identifier inside the request zone.")
     soil_color: str | None = Field(
@@ -83,7 +204,16 @@ class ZoneSample(BaseModel):
 
 
 class ZonePredictionRequest(BaseModel):
-    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    model_config = ConfigDict(
+        extra="forbid",
+        str_strip_whitespace=True,
+        json_schema_extra={
+            "examples": [
+                ZONE_PREDICTION_REQUEST_OPENAPI_EXAMPLES["minimal_zone_request"]["value"],
+                ZONE_PREDICTION_REQUEST_OPENAPI_EXAMPLES["extended_zone_request"]["value"],
+            ]
+        },
+    )
 
     zone_id: str = Field(..., min_length=1, description="Client-side identifier for the zone being predicted.")
     samples: list[ZoneSample] = Field(..., min_length=1, description="Raw point samples belonging to the same zone.")

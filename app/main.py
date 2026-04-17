@@ -4,7 +4,7 @@ import logging
 from contextlib import asynccontextmanager
 from typing import Any
 
-from fastapi import FastAPI, Request
+from fastapi import Body, FastAPI, Request
 
 from app.core.config import Settings, get_settings
 from app.core.exceptions import ArtifactLoadError, register_exception_handlers
@@ -12,6 +12,7 @@ from app.schemas import (
     ErrorResponse,
     HealthResponse,
     ModelInfoPayload,
+    ZONE_PREDICTION_REQUEST_OPENAPI_EXAMPLES,
     ZonePredictionDebugResponse,
     ZonePredictionRequest,
     ZonePredictionResponse,
@@ -113,7 +114,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         responses={400: {"model": ErrorResponse}, 422: {"model": ErrorResponse}, 503: {"model": ErrorResponse}},
         tags=["prediction"],
     )
-    async def predict_zone(payload: ZonePredictionRequest, request: Request) -> dict[str, Any]:
+    async def predict_zone(
+        request: Request,
+        payload: ZonePredictionRequest = Body(..., openapi_examples=ZONE_PREDICTION_REQUEST_OPENAPI_EXAMPLES),
+    ) -> dict[str, Any]:
         predictor = _get_predictor(request)
         return predictor.predict(payload, include_debug=False)
 
@@ -123,7 +127,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         responses={400: {"model": ErrorResponse}, 422: {"model": ErrorResponse}, 503: {"model": ErrorResponse}},
         tags=["prediction"],
     )
-    async def predict_zone_debug(payload: ZonePredictionRequest, request: Request) -> dict[str, Any]:
+    async def predict_zone_debug(
+        request: Request,
+        payload: ZonePredictionRequest = Body(..., openapi_examples=ZONE_PREDICTION_REQUEST_OPENAPI_EXAMPLES),
+    ) -> dict[str, Any]:
         predictor = _get_predictor(request)
         return predictor.predict(payload, include_debug=True)
 

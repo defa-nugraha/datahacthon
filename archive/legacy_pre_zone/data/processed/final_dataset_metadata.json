@@ -1,0 +1,312 @@
+{
+  "dataset_name": "Vegetation Recommendation Final Dataset",
+  "created_at_utc": "2026-04-16T11:35:36.480835+00:00",
+  "target_column": "target_crop",
+  "problem_framing": "multiclass_classification",
+  "rows_before_cleaning": 3867,
+  "rows_after_cleaning": 3841,
+  "removed_rows": 26,
+  "n_features_final_dataset": 15,
+  "n_features_minimal_dataset": 8,
+  "n_features_extended_dataset": 33,
+  "source_datasets_used": [
+    {
+      "path": "datasets/csv/mendeley_8v757rr4st_crop_recommendation_soil_weather.csv",
+      "role": "primary_training_source",
+      "used_in_final_dataset": true,
+      "reason": "Best available supervised dataset with direct crop labels and aligned soil-plus-weather features."
+    }
+  ],
+  "source_datasets_considered_but_not_merged": [
+    {
+      "path": "datasets/csv/github_nileshiq_crop_recommendation.csv",
+      "reason": "Label space and feature semantics differ; concatenation would introduce source shift without reliable reconciliation."
+    },
+    {
+      "path": "datasets/csv/mendeley_vynxnppr7j_crop_recommendation.csv",
+      "reason": "Synthetic CTGAN augmentation makes it unsuitable as the default evaluation dataset."
+    },
+    {
+      "path": "datasets/csv/isric_wosis_latest_*.csv",
+      "reason": "Strong Indonesia soil backbone, but no crop labels or direct keys to the supervised crop dataset."
+    }
+  ],
+  "merge_strategy": {
+    "selected_strategy": "no_cross_source_row_level_merge_for_baseline",
+    "reason": "Candidate datasets do not share reliable row-level keys, aligned label spaces, or fully consistent units. The baseline keeps a single-source supervised table and treats other files as benchmark or future enrichment sources."
+  },
+  "cleaning_notes": [
+    "Columns were standardized to snake_case.",
+    "Soil color strings were normalized into a compact categorical vocabulary.",
+    "Target labels were whitespace-normalized and title-cased.",
+    "Rows with the non-crop label 'Fallow' were removed because they do not represent a vegetation/crop recommendation target.",
+    "No duplicate rows remained after cleaning.",
+    "Domain validation was applied for pH, rainfall, soil moisture, and nutrient non-negativity.",
+    "Outliers were retained unless they violated hard domain rules because extreme agronomic values may still be valid observations.",
+    "The recommended `final_dataset.csv` uses the summary-feature variant because it delivered stronger validation and hold-out macro F1 than the full extended feature set in baseline experiments."
+  ],
+  "final_dataset_versions": {
+    "final_dataset": {
+      "path": "data/processed/final_dataset.csv",
+      "rows": 3841,
+      "columns": [
+        "record_id",
+        "source_dataset",
+        "soil_color",
+        "ph",
+        "nitrogen",
+        "phosphorus",
+        "potassium",
+        "zinc",
+        "sulfur",
+        "specific_humidity_mean",
+        "temperature_mean",
+        "temperature_seasonal_range",
+        "rainfall_mean",
+        "rainfall_total_proxy",
+        "soil_moisture_surface",
+        "cloud_amount",
+        "surface_pressure",
+        "target_crop"
+      ]
+    },
+    "final_dataset_minimal": {
+      "path": "data/processed/final_dataset_minimal.csv",
+      "rows": 3841,
+      "columns": [
+        "record_id",
+        "source_dataset",
+        "soil_color",
+        "ph",
+        "nitrogen",
+        "phosphorus",
+        "potassium",
+        "temperature_mean",
+        "rainfall_mean",
+        "soil_moisture_surface",
+        "target_crop"
+      ]
+    },
+    "final_dataset_extended": {
+      "path": "data/processed/final_dataset_extended.csv",
+      "rows": 3841,
+      "columns": [
+        "record_id",
+        "source_dataset",
+        "soil_color",
+        "ph",
+        "nitrogen",
+        "phosphorus",
+        "potassium",
+        "zinc",
+        "sulfur",
+        "specific_humidity_winter",
+        "specific_humidity_spring",
+        "specific_humidity_summer",
+        "specific_humidity_autumn",
+        "temperature_max_winter",
+        "temperature_max_spring",
+        "temperature_max_summer",
+        "temperature_max_autumn",
+        "temperature_min_winter",
+        "temperature_min_spring",
+        "temperature_min_summer",
+        "temperature_min_autumn",
+        "rainfall_winter",
+        "rainfall_spring",
+        "rainfall_summer",
+        "rainfall_autumn",
+        "wind_speed_10m",
+        "soil_moisture_surface",
+        "cloud_amount",
+        "wind_speed_range_2m",
+        "surface_pressure",
+        "specific_humidity_mean",
+        "temperature_mean",
+        "temperature_seasonal_range",
+        "rainfall_mean",
+        "rainfall_total_proxy",
+        "target_crop"
+      ]
+    }
+  },
+  "missing_value_summary": {
+    "record_id": 0,
+    "source_dataset": 0,
+    "soil_color": 0,
+    "ph": 0,
+    "nitrogen": 0,
+    "phosphorus": 0,
+    "potassium": 0,
+    "zinc": 0,
+    "sulfur": 0,
+    "specific_humidity_mean": 0,
+    "temperature_mean": 0,
+    "temperature_seasonal_range": 0,
+    "rainfall_mean": 0,
+    "rainfall_total_proxy": 0,
+    "soil_moisture_surface": 0,
+    "cloud_amount": 0,
+    "surface_pressure": 0,
+    "target_crop": 0
+  },
+  "class_distribution": {
+    "Teff": 1260,
+    "Maize": 732,
+    "Wheat": 715,
+    "Barley": 503,
+    "Bean": 253,
+    "Pea": 94,
+    "Sorghum": 72,
+    "Dagussa": 71,
+    "Niger Seed": 64,
+    "Potato": 48,
+    "Red Pepper": 29
+  },
+  "column_metadata": {
+    "record_id": {
+      "description": "Stable row identifier generated during preparation.",
+      "dtype": "string"
+    },
+    "source_dataset": {
+      "description": "Provenance marker for the selected training source.",
+      "dtype": "string"
+    },
+    "soil_color": {
+      "description": "Normalized soil color category derived from the raw soil color text.",
+      "dtype": "categorical"
+    },
+    "ph": {
+      "description": "Soil pH from the source dataset.",
+      "dtype": "float"
+    },
+    "nitrogen": {
+      "description": "Soil nitrogen measurement from the source dataset.",
+      "dtype": "float"
+    },
+    "phosphorus": {
+      "description": "Soil phosphorus measurement from the source dataset.",
+      "dtype": "float"
+    },
+    "potassium": {
+      "description": "Soil potassium measurement from the source dataset.",
+      "dtype": "float"
+    },
+    "zinc": {
+      "description": "Soil zinc measurement from the source dataset.",
+      "dtype": "float"
+    },
+    "sulfur": {
+      "description": "Soil sulfur measurement from the source dataset.",
+      "dtype": "float"
+    },
+    "specific_humidity_winter": {
+      "description": "Seasonal specific humidity feature for winter from the source dataset.",
+      "dtype": "float"
+    },
+    "specific_humidity_spring": {
+      "description": "Seasonal specific humidity feature for spring from the source dataset.",
+      "dtype": "float"
+    },
+    "specific_humidity_summer": {
+      "description": "Seasonal specific humidity feature for summer from the source dataset.",
+      "dtype": "float"
+    },
+    "specific_humidity_autumn": {
+      "description": "Seasonal specific humidity feature for autumn from the source dataset.",
+      "dtype": "float"
+    },
+    "temperature_max_winter": {
+      "description": "Seasonal maximum temperature for winter from the source dataset.",
+      "dtype": "float"
+    },
+    "temperature_max_spring": {
+      "description": "Seasonal maximum temperature for spring from the source dataset.",
+      "dtype": "float"
+    },
+    "temperature_max_summer": {
+      "description": "Seasonal maximum temperature for summer from the source dataset.",
+      "dtype": "float"
+    },
+    "temperature_max_autumn": {
+      "description": "Seasonal maximum temperature for autumn from the source dataset.",
+      "dtype": "float"
+    },
+    "temperature_min_winter": {
+      "description": "Seasonal minimum temperature for winter from the source dataset.",
+      "dtype": "float"
+    },
+    "temperature_min_spring": {
+      "description": "Seasonal minimum temperature for spring from the source dataset.",
+      "dtype": "float"
+    },
+    "temperature_min_summer": {
+      "description": "Seasonal minimum temperature for summer from the source dataset.",
+      "dtype": "float"
+    },
+    "temperature_min_autumn": {
+      "description": "Seasonal minimum temperature for autumn from the source dataset.",
+      "dtype": "float"
+    },
+    "rainfall_winter": {
+      "description": "Seasonal corrected precipitation for winter from the source dataset.",
+      "dtype": "float"
+    },
+    "rainfall_spring": {
+      "description": "Seasonal corrected precipitation for spring from the source dataset.",
+      "dtype": "float"
+    },
+    "rainfall_summer": {
+      "description": "Seasonal corrected precipitation for summer from the source dataset.",
+      "dtype": "float"
+    },
+    "rainfall_autumn": {
+      "description": "Seasonal corrected precipitation for autumn from the source dataset.",
+      "dtype": "float"
+    },
+    "wind_speed_10m": {
+      "description": "Wind speed feature at 10 meters from the source dataset.",
+      "dtype": "float"
+    },
+    "specific_humidity_mean": {
+      "description": "Mean seasonal specific humidity computed from the four QV2M features.",
+      "dtype": "float"
+    },
+    "temperature_mean": {
+      "description": "Average seasonal mean temperature computed from max/min seasonal values.",
+      "dtype": "float"
+    },
+    "temperature_seasonal_range": {
+      "description": "Maximum seasonal temperature minus minimum seasonal temperature.",
+      "dtype": "float"
+    },
+    "rainfall_mean": {
+      "description": "Mean seasonal corrected precipitation across the four source precipitation columns.",
+      "dtype": "float"
+    },
+    "rainfall_total_proxy": {
+      "description": "Sum of the four seasonal precipitation columns retained as a total-rainfall proxy.",
+      "dtype": "float"
+    },
+    "soil_moisture_surface": {
+      "description": "Top-layer soil moisture proxy from the source dataset.",
+      "dtype": "float"
+    },
+    "cloud_amount": {
+      "description": "Cloud amount feature from the source dataset.",
+      "dtype": "float"
+    },
+    "wind_speed_range_2m": {
+      "description": "Range of near-surface wind speed from the source dataset.",
+      "dtype": "float"
+    },
+    "surface_pressure": {
+      "description": "Surface pressure feature from the source dataset.",
+      "dtype": "float"
+    },
+    "target_crop": {
+      "description": "Normalized crop label used as the supervised learning target.",
+      "dtype": "string"
+    }
+  }
+}

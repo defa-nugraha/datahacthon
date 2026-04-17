@@ -1,0 +1,618 @@
+{
+  "split_strategy": {
+    "type": "group_aware_stratified_split",
+    "group_column": "base_context_id",
+    "train_contexts": [
+      6,
+      7,
+      11,
+      12
+    ],
+    "validation_contexts": [
+      1,
+      2,
+      10
+    ],
+    "test_contexts": [
+      8,
+      9,
+      14,
+      16
+    ]
+  },
+  "zone_builder_params": {
+    "target_zone_size": 25,
+    "min_samples_per_zone": 8,
+    "min_zone_label_dominance_ratio": 0.6,
+    "min_zones_per_class": 3,
+    "cluster_features": [
+      "ph",
+      "potassium",
+      "phosphorus",
+      "nitrogen",
+      "zinc",
+      "sulfur"
+    ]
+  },
+  "zone_dataset_summary": {
+    "zone_dataset_path": "data/processed/zone_dataset.csv",
+    "zone_dataset_minimal_path": "data/processed/zone_dataset_minimal.csv",
+    "zone_dataset_extended_path": "data/processed/zone_dataset_extended.csv",
+    "n_final_zones": 33,
+    "zone_class_distribution": {
+      "Maize": 13,
+      "Teff": 12,
+      "Wheat": 4,
+      "Barley": 4
+    },
+    "average_points_per_zone": 31.09090909090909
+  },
+  "point_to_zone_baseline": {
+    "best_model_name": "logistic_regression",
+    "feature_columns": [
+      "soil_color",
+      "ph",
+      "nitrogen",
+      "phosphorus",
+      "potassium",
+      "zinc",
+      "sulfur",
+      "specific_humidity_mean",
+      "temperature_mean",
+      "temperature_seasonal_range",
+      "rainfall_mean",
+      "rainfall_total_proxy",
+      "soil_moisture_surface",
+      "cloud_amount",
+      "surface_pressure"
+    ],
+    "model_comparison": [
+      {
+        "model_name": "logistic_regression",
+        "validation_accuracy": 0.5,
+        "validation_precision_macro": 0.47916666666666663,
+        "validation_recall_macro": 0.5833333333333333,
+        "validation_f1_macro": 0.42500000000000004
+      },
+      {
+        "model_name": "random_forest",
+        "validation_accuracy": 0.5,
+        "validation_precision_macro": 0.47916666666666663,
+        "validation_recall_macro": 0.5833333333333333,
+        "validation_f1_macro": 0.42500000000000004
+      },
+      {
+        "model_name": "extra_trees",
+        "validation_accuracy": 0.5,
+        "validation_precision_macro": 0.47916666666666663,
+        "validation_recall_macro": 0.5833333333333333,
+        "validation_f1_macro": 0.42500000000000004
+      }
+    ],
+    "validation_metrics": {
+      "validation_accuracy": 0.5,
+      "validation_precision_macro": 0.47916666666666663,
+      "validation_recall_macro": 0.5833333333333333,
+      "validation_f1_macro": 0.42500000000000004
+    },
+    "test_metrics": {
+      "accuracy": 0.8571428571428571,
+      "precision_macro": 0.625,
+      "recall_macro": 0.75,
+      "f1_macro": 0.6666666666666666
+    },
+    "test_zone_count": 7,
+    "notes": [
+      "This baseline is trained on individual points but evaluated after aggregating point predictions to the zone level.",
+      "Model selection uses a fixed validation context split rather than grouped CV because the main production focus is the zone model."
+    ]
+  },
+  "zone_mean_only": {
+    "best_model_name": "random_forest",
+    "selection_strategy": "validation_holdout_fallback",
+    "best_model_params": {
+      "model__max_depth": null,
+      "model__max_features": "sqrt",
+      "model__min_samples_leaf": 1,
+      "model__n_estimators": 120
+    },
+    "best_cv_or_validation_macro_f1": 0.3666666666666667,
+    "feature_columns": [
+      "sample_count",
+      "context_sample_count",
+      "context_cluster_count",
+      "soil_color_mode",
+      "soil_color_dominant_ratio",
+      "ph_mean",
+      "nitrogen_mean",
+      "phosphorus_mean",
+      "potassium_mean",
+      "zinc_mean",
+      "sulfur_mean",
+      "soil_moisture_surface_mean",
+      "wind_speed_10m_mean",
+      "specific_humidity_mean_mean",
+      "temperature_mean_mean",
+      "temperature_seasonal_range_mean",
+      "rainfall_mean_mean",
+      "rainfall_total_proxy_mean",
+      "cloud_amount_mean",
+      "surface_pressure_mean"
+    ],
+    "model_comparison": [
+      {
+        "model_name": "random_forest",
+        "selection_strategy": "validation_holdout_fallback",
+        "cv_splits": 0,
+        "cv_accuracy_mean": 0.5,
+        "cv_precision_macro_mean": 0.3333333333333333,
+        "cv_recall_macro_mean": 0.41666666666666663,
+        "cv_f1_macro_mean": 0.3666666666666667,
+        "cv_accuracy_std": 0.0,
+        "cv_f1_macro_std": 0.0
+      },
+      {
+        "model_name": "extra_trees",
+        "selection_strategy": "validation_holdout_fallback",
+        "cv_splits": 0,
+        "cv_accuracy_mean": 0.5,
+        "cv_precision_macro_mean": 0.26666666666666666,
+        "cv_recall_macro_mean": 0.41666666666666663,
+        "cv_f1_macro_mean": 0.325,
+        "cv_accuracy_std": 0.0,
+        "cv_f1_macro_std": 0.0
+      },
+      {
+        "model_name": "logistic_regression",
+        "selection_strategy": "validation_holdout_fallback",
+        "cv_splits": 0,
+        "cv_accuracy_mean": 0.375,
+        "cv_precision_macro_mean": 0.3,
+        "cv_recall_macro_mean": 0.29166666666666663,
+        "cv_f1_macro_mean": 0.27142857142857146,
+        "cv_accuracy_std": 0.0,
+        "cv_f1_macro_std": 0.0
+      }
+    ],
+    "validation_metrics": {
+      "accuracy": 0.5,
+      "precision_macro": 0.3333333333333333,
+      "recall_macro": 0.41666666666666663,
+      "f1_macro": 0.3666666666666667
+    },
+    "test_metrics": {
+      "accuracy": 0.7142857142857143,
+      "precision_macro": 0.4375,
+      "recall_macro": 0.5,
+      "f1_macro": 0.4642857142857143
+    }
+  },
+  "zone_mean_plus_variability": {
+    "best_model_name": "logistic_regression",
+    "selection_strategy": "validation_holdout_fallback",
+    "best_model_params": {
+      "model__C": 1.0
+    },
+    "best_cv_or_validation_macro_f1": 0.34285714285714286,
+    "feature_columns": [
+      "sample_count",
+      "context_sample_count",
+      "context_cluster_count",
+      "soil_color_mode",
+      "soil_color_nunique",
+      "soil_color_dominant_ratio",
+      "soil_color_missing_ratio",
+      "ph_mean",
+      "ph_std",
+      "ph_min",
+      "ph_max",
+      "ph_median",
+      "ph_count",
+      "ph_range",
+      "ph_cv",
+      "ph_missing_ratio",
+      "nitrogen_mean",
+      "nitrogen_std",
+      "nitrogen_min",
+      "nitrogen_max",
+      "nitrogen_median",
+      "nitrogen_count",
+      "nitrogen_range",
+      "nitrogen_cv",
+      "nitrogen_missing_ratio",
+      "phosphorus_mean",
+      "phosphorus_std",
+      "phosphorus_min",
+      "phosphorus_max",
+      "phosphorus_median",
+      "phosphorus_count",
+      "phosphorus_range",
+      "phosphorus_cv",
+      "phosphorus_missing_ratio",
+      "potassium_mean",
+      "potassium_std",
+      "potassium_min",
+      "potassium_max",
+      "potassium_median",
+      "potassium_count",
+      "potassium_range",
+      "potassium_cv",
+      "potassium_missing_ratio",
+      "zinc_mean",
+      "zinc_std",
+      "zinc_min",
+      "zinc_max",
+      "zinc_median",
+      "zinc_count",
+      "zinc_range",
+      "zinc_cv",
+      "zinc_missing_ratio",
+      "sulfur_mean",
+      "sulfur_std",
+      "sulfur_min",
+      "sulfur_max",
+      "sulfur_median",
+      "sulfur_count",
+      "sulfur_range",
+      "sulfur_cv",
+      "sulfur_missing_ratio",
+      "soil_moisture_surface_mean",
+      "soil_moisture_surface_std",
+      "soil_moisture_surface_min",
+      "soil_moisture_surface_max",
+      "soil_moisture_surface_median",
+      "soil_moisture_surface_count",
+      "soil_moisture_surface_range",
+      "soil_moisture_surface_cv",
+      "soil_moisture_surface_missing_ratio",
+      "wind_speed_10m_mean",
+      "wind_speed_10m_std",
+      "wind_speed_10m_min",
+      "wind_speed_10m_max",
+      "wind_speed_10m_median",
+      "wind_speed_10m_count",
+      "wind_speed_10m_range",
+      "wind_speed_10m_cv",
+      "wind_speed_10m_missing_ratio",
+      "specific_humidity_mean_mean",
+      "specific_humidity_mean_std",
+      "specific_humidity_mean_min",
+      "specific_humidity_mean_max",
+      "specific_humidity_mean_median",
+      "specific_humidity_mean_count",
+      "specific_humidity_mean_range",
+      "specific_humidity_mean_cv",
+      "specific_humidity_mean_missing_ratio",
+      "temperature_mean_mean",
+      "temperature_mean_std",
+      "temperature_mean_min",
+      "temperature_mean_max",
+      "temperature_mean_median",
+      "temperature_mean_count",
+      "temperature_mean_range",
+      "temperature_mean_cv",
+      "temperature_mean_missing_ratio",
+      "temperature_seasonal_range_mean",
+      "temperature_seasonal_range_std",
+      "temperature_seasonal_range_min",
+      "temperature_seasonal_range_max",
+      "temperature_seasonal_range_median",
+      "temperature_seasonal_range_count",
+      "temperature_seasonal_range_range",
+      "temperature_seasonal_range_cv",
+      "temperature_seasonal_range_missing_ratio",
+      "rainfall_mean_mean",
+      "rainfall_mean_std",
+      "rainfall_mean_min",
+      "rainfall_mean_max",
+      "rainfall_mean_median",
+      "rainfall_mean_count",
+      "rainfall_mean_range",
+      "rainfall_mean_cv",
+      "rainfall_mean_missing_ratio",
+      "rainfall_total_proxy_mean",
+      "rainfall_total_proxy_std",
+      "rainfall_total_proxy_min",
+      "rainfall_total_proxy_max",
+      "rainfall_total_proxy_median",
+      "rainfall_total_proxy_count",
+      "rainfall_total_proxy_range",
+      "rainfall_total_proxy_cv",
+      "rainfall_total_proxy_missing_ratio",
+      "cloud_amount_mean",
+      "cloud_amount_std",
+      "cloud_amount_min",
+      "cloud_amount_max",
+      "cloud_amount_median",
+      "cloud_amount_count",
+      "cloud_amount_range",
+      "cloud_amount_cv",
+      "cloud_amount_missing_ratio",
+      "surface_pressure_mean",
+      "surface_pressure_std",
+      "surface_pressure_min",
+      "surface_pressure_max",
+      "surface_pressure_median",
+      "surface_pressure_count",
+      "surface_pressure_range",
+      "surface_pressure_cv",
+      "surface_pressure_missing_ratio"
+    ],
+    "model_comparison": [
+      {
+        "model_name": "logistic_regression",
+        "selection_strategy": "validation_holdout_fallback",
+        "cv_splits": 0,
+        "cv_accuracy_mean": 0.5,
+        "cv_precision_macro_mean": 0.35,
+        "cv_recall_macro_mean": 0.41666666666666663,
+        "cv_f1_macro_mean": 0.34285714285714286,
+        "cv_accuracy_std": 0.0,
+        "cv_f1_macro_std": 0.0
+      },
+      {
+        "model_name": "extra_trees",
+        "selection_strategy": "validation_holdout_fallback",
+        "cv_splits": 0,
+        "cv_accuracy_mean": 0.5,
+        "cv_precision_macro_mean": 0.26666666666666666,
+        "cv_recall_macro_mean": 0.41666666666666663,
+        "cv_f1_macro_mean": 0.325,
+        "cv_accuracy_std": 0.0,
+        "cv_f1_macro_std": 0.0
+      },
+      {
+        "model_name": "random_forest",
+        "selection_strategy": "validation_holdout_fallback",
+        "cv_splits": 0,
+        "cv_accuracy_mean": 0.375,
+        "cv_precision_macro_mean": 0.20833333333333331,
+        "cv_recall_macro_mean": 0.3333333333333333,
+        "cv_f1_macro_mean": 0.225,
+        "cv_accuracy_std": 0.0,
+        "cv_f1_macro_std": 0.0
+      }
+    ],
+    "validation_metrics": {
+      "accuracy": 0.5,
+      "precision_macro": 0.35,
+      "recall_macro": 0.41666666666666663,
+      "f1_macro": 0.34285714285714286
+    },
+    "test_metrics": {
+      "accuracy": 0.5714285714285714,
+      "precision_macro": 0.4375,
+      "recall_macro": 0.375,
+      "f1_macro": 0.38095238095238093
+    }
+  },
+  "selected_zone_scenario": "zone_mean_only",
+  "selected_zone_model_name": "random_forest",
+  "selected_zone_selection_strategy": "validation_holdout_fallback",
+  "selected_zone_model_params": {
+    "model__max_depth": null,
+    "model__max_features": "sqrt",
+    "model__min_samples_leaf": 1,
+    "model__n_estimators": 120
+  },
+  "selected_zone_validation_metrics": {
+    "accuracy": 0.5,
+    "precision_macro": 0.3333333333333333,
+    "recall_macro": 0.41666666666666663,
+    "f1_macro": 0.3666666666666667
+  },
+  "selected_zone_test_metrics": {
+    "accuracy": 0.7142857142857143,
+    "precision_macro": 0.4375,
+    "recall_macro": 0.5,
+    "f1_macro": 0.4642857142857143
+  },
+  "selected_zone_confusion_matrix_labels": [
+    "Barley",
+    "Maize",
+    "Teff",
+    "Wheat"
+  ],
+  "selected_zone_confusion_matrix": [
+    [
+      0,
+      0,
+      0,
+      1
+    ],
+    [
+      0,
+      2,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      3,
+      0
+    ],
+    [
+      0,
+      0,
+      1,
+      0
+    ]
+  ],
+  "selected_zone_classification_report": {
+    "Barley": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1-score": 0.0,
+      "support": 1.0
+    },
+    "Maize": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 2.0
+    },
+    "Teff": {
+      "precision": 0.75,
+      "recall": 1.0,
+      "f1-score": 0.8571428571428571,
+      "support": 3.0
+    },
+    "Wheat": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1-score": 0.0,
+      "support": 1.0
+    },
+    "accuracy": 0.7142857142857143,
+    "macro avg": {
+      "precision": 0.4375,
+      "recall": 0.5,
+      "f1-score": 0.4642857142857143,
+      "support": 7.0
+    },
+    "weighted avg": {
+      "precision": 0.6071428571428571,
+      "recall": 0.7142857142857143,
+      "f1-score": 0.6530612244897959,
+      "support": 7.0
+    }
+  },
+  "variability_features_help_validation": false,
+  "variability_features_help_test": false,
+  "zone_model_beats_point_baseline": false,
+  "best_zone_top_feature_importance": [
+    {
+      "scenario_name": "zone_mean_only",
+      "feature": "soil_color_mode",
+      "importance_mean": 0.07837301587301589,
+      "importance_std": 0.055750084596139365
+    },
+    {
+      "scenario_name": "zone_mean_only",
+      "feature": "nitrogen_mean",
+      "importance_mean": 0.06507936507936507,
+      "importance_std": 0.046018060362934037
+    },
+    {
+      "scenario_name": "zone_mean_only",
+      "feature": "temperature_mean_mean",
+      "importance_mean": 0.01428571428571429,
+      "importance_std": 0.0
+    },
+    {
+      "scenario_name": "zone_mean_only",
+      "feature": "surface_pressure_mean",
+      "importance_mean": 0.01428571428571429,
+      "importance_std": 0.0
+    },
+    {
+      "scenario_name": "zone_mean_only",
+      "feature": "specific_humidity_mean_mean",
+      "importance_mean": 0.004761904761904763,
+      "importance_std": 0.006734350297014741
+    },
+    {
+      "scenario_name": "zone_mean_only",
+      "feature": "sample_count",
+      "importance_mean": 0.0,
+      "importance_std": 0.0
+    },
+    {
+      "scenario_name": "zone_mean_only",
+      "feature": "context_sample_count",
+      "importance_mean": 0.0,
+      "importance_std": 0.0
+    },
+    {
+      "scenario_name": "zone_mean_only",
+      "feature": "context_cluster_count",
+      "importance_mean": 0.0,
+      "importance_std": 0.0
+    },
+    {
+      "scenario_name": "zone_mean_only",
+      "feature": "soil_color_dominant_ratio",
+      "importance_mean": 0.0,
+      "importance_std": 0.0
+    },
+    {
+      "scenario_name": "zone_mean_only",
+      "feature": "ph_mean",
+      "importance_mean": 0.0,
+      "importance_std": 0.0
+    },
+    {
+      "scenario_name": "zone_mean_only",
+      "feature": "phosphorus_mean",
+      "importance_mean": 0.0,
+      "importance_std": 0.0
+    },
+    {
+      "scenario_name": "zone_mean_only",
+      "feature": "potassium_mean",
+      "importance_mean": 0.0,
+      "importance_std": 0.0
+    },
+    {
+      "scenario_name": "zone_mean_only",
+      "feature": "zinc_mean",
+      "importance_mean": 0.0,
+      "importance_std": 0.0
+    },
+    {
+      "scenario_name": "zone_mean_only",
+      "feature": "sulfur_mean",
+      "importance_mean": 0.0,
+      "importance_std": 0.0
+    },
+    {
+      "scenario_name": "zone_mean_only",
+      "feature": "soil_moisture_surface_mean",
+      "importance_mean": 0.0,
+      "importance_std": 0.0
+    },
+    {
+      "scenario_name": "zone_mean_only",
+      "feature": "wind_speed_10m_mean",
+      "importance_mean": 0.0,
+      "importance_std": 0.0
+    },
+    {
+      "scenario_name": "zone_mean_only",
+      "feature": "temperature_seasonal_range_mean",
+      "importance_mean": 0.0,
+      "importance_std": 0.0
+    },
+    {
+      "scenario_name": "zone_mean_only",
+      "feature": "rainfall_mean_mean",
+      "importance_mean": 0.0,
+      "importance_std": 0.0
+    },
+    {
+      "scenario_name": "zone_mean_only",
+      "feature": "rainfall_total_proxy_mean",
+      "importance_mean": 0.0,
+      "importance_std": 0.0
+    },
+    {
+      "scenario_name": "zone_mean_only",
+      "feature": "cloud_amount_mean",
+      "importance_mean": 0.0,
+      "importance_std": 0.0
+    }
+  ],
+  "artifacts": {
+    "zone_model_metrics": "artifacts/zone_model_metrics.json",
+    "zone_prediction_samples": "artifacts/zone_prediction_samples.csv",
+    "zone_feature_importance": "artifacts/zone_feature_importance.csv",
+    "best_zone_model": "artifacts/models/best_zone_model.joblib",
+    "best_zone_preprocessor": "artifacts/pipelines/zone_preprocessing_pipeline.joblib"
+  },
+  "notes": [
+    "Point baseline is intentionally evaluated at the zone level by aggregating point predictions inside each held-out zone.",
+    "Zone scenarios use group-aware CV and group-aware hold-out splits keyed by base_context_id.",
+    "Because raw coordinates are absent, the zone system remains a pseudo-zone approximation rather than a true geospatial field-zone model."
+  ]
+}

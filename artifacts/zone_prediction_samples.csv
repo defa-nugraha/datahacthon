@@ -1,0 +1,8 @@
+zone_id,base_context_id,sample_count,actual_target,predicted_target,is_correct,top_3_predictions
+zone_08_00,8,17,Barley,Wheat,0,Wheat:0.4667 | Barley:0.3083 | Teff:0.1167
+zone_09_01,9,57,Teff,Teff,1,Teff:0.4833 | Wheat:0.2083 | Maize:0.1833
+zone_09_04,9,49,Teff,Teff,1,Teff:0.5417 | Wheat:0.2333 | Maize:0.1500
+zone_14_04,14,9,Teff,Teff,1,Teff:0.7583 | Wheat:0.1417 | Maize:0.0667
+zone_14_15,14,9,Wheat,Teff,0,Teff:0.3083 | Barley:0.2583 | Maize:0.2500
+zone_16_01,16,45,Maize,Maize,1,Maize:0.6667 | Wheat:0.1583 | Teff:0.1167
+zone_16_08,16,20,Maize,Maize,1,Maize:0.6667 | Wheat:0.2000 | Teff:0.0833

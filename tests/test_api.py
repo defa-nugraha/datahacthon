@@ -22,8 +22,8 @@ def _sample(point_id: str, **overrides):
         "nitrogen": 100.0,
         "phosphorus": 39.0,
         "potassium": 70.0,
-        "zinc": 1.2,
-        "sulfur": 10.0,
+        "temperature_mean": 19.2,
+        "rainfall_mean": 6.2,
     }
     payload.update(overrides)
     return payload
@@ -52,7 +52,7 @@ def test_predict_zone_valid_request(client: TestClient) -> None:
     assert body["zone_id"] == "zone_test"
     assert body["sample_count"] == 8
     assert "ph_mean" in body["aggregated_features"]
-    assert body["prediction"]["recommended_label"] in {"Barley", "Maize", "Teff", "Wheat"}
+    assert body["prediction"]["recommended_label"] in body["model_info"]["target_labels"]
     assert len(body["prediction"]["top_k"]) == 3
 
 
@@ -85,7 +85,7 @@ def test_predictor_returns_prediction_successfully() -> None:
     payload = ZonePredictionRequest(**_valid_zone_payload())
     result = predictor.predict(payload)
     assert result["status"] == "success"
-    assert result["model_info"]["feature_set_type"] == "mean_only"
+    assert result["model_info"]["feature_set_type"] == "mean_plus_variability"
     assert result["prediction"]["recommended_label"] in predictor.artifacts.classes_
 
 

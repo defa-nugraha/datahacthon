@@ -6,11 +6,11 @@ Komponen aktif:
 
 - dataset proses zona di `data/processed/zone_*`
 - artifact model zona di `artifacts/zone_*`
-- model aktif di `artifacts/models/best_zone_model.joblib`
-- preprocessing aktif di `artifacts/pipelines/zone_preprocessing_pipeline.joblib`
+- model API default di `artifacts/models/best_zone_model_expanded.joblib`
+- preprocessing API default di `artifacts/pipelines/best_zone_pipeline_expanded.joblib`
 - notebook aktif di `notebooks/zone_based_vegetation_recommendation.ipynb`
 - API inferensi zona di `app/`
-- script pipeline zona di `scripts/build_zone_dataset.py`, `scripts/train_zone_model.py`, dan `scripts/generate_zone_notebook.py`
+- script pipeline zona di `scripts/build_zone_dataset.py`, `scripts/train_zone_model.py`, `scripts/prepare_zone_dataset_expanded.py`, dan `scripts/train_zone_model_expanded.py`
 
 Source dataset aktif:
 

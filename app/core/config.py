@@ -43,36 +43,36 @@ class Settings:
         project_root = Path(
             os.getenv("PROJECT_ROOT", Path(__file__).resolve().parents[2])
         ).expanduser().resolve()
-        recommended_override = os.getenv("ZONE_INFERENCE_RECOMMENDED_MIN_SAMPLES")
+        recommended_override = os.getenv("ZONE_INFERENCE_RECOMMENDED_MIN_SAMPLES", "8")
 
         return cls(
             project_root=project_root,
             zone_model_path=_resolve_path(
                 project_root,
                 os.getenv("ZONE_MODEL_PATH"),
-                "artifacts/models/best_zone_model.joblib",
+                "artifacts/models/best_zone_model_expanded.joblib",
             ),
             zone_preprocessing_path=_resolve_path(
                 project_root,
                 os.getenv("ZONE_PREPROCESSING_PATH"),
-                "artifacts/pipelines/zone_preprocessing_pipeline.joblib",
+                "artifacts/pipelines/best_zone_pipeline_expanded.joblib",
             ),
             zone_metrics_path=_resolve_path(
                 project_root,
                 os.getenv("ZONE_METRICS_PATH"),
-                "artifacts/zone_model_metrics.json",
+                "artifacts/best_model_metrics_expanded.json",
             ),
             zone_metadata_path=_resolve_path(
                 project_root,
                 os.getenv("ZONE_METADATA_PATH"),
-                "data/processed/zone_dataset_metadata.json",
+                "data/processed/zone_dataset_expanded_id_metadata.json",
             ),
             zone_feature_summary_path=_resolve_path(
                 project_root,
                 os.getenv("ZONE_FEATURE_SUMMARY_PATH"),
-                "artifacts/zone_feature_summary.csv",
+                "artifacts/zone_feature_summary_expanded.csv",
             ),
-            active_zone_scenario=os.getenv("ACTIVE_ZONE_SCENARIO") or None,
+            active_zone_scenario=os.getenv("ACTIVE_ZONE_SCENARIO", "zone_mean_plus_variability") or None,
             active_zone_model_version=os.getenv("ACTIVE_ZONE_MODEL_VERSION") or None,
             absolute_min_samples=max(1, int(os.getenv("ZONE_INFERENCE_ABSOLUTE_MIN_SAMPLES", "3"))),
             recommended_min_samples_override=(

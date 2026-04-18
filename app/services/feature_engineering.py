@@ -47,8 +47,10 @@ SUPPORTED_RAW_NUMERIC_FIELDS = {
     "surface_pressure",
 }
 SUPPORTED_RAW_CATEGORICAL_FIELDS = {"soil_color"}
-MANDATORY_RAW_FIELDS = ["ph", "nitrogen", "phosphorus", "potassium", "zinc", "sulfur"]
+MANDATORY_RAW_FIELDS = ["ph", "nitrogen", "phosphorus", "potassium"]
 OPTIONAL_RAW_FIELDS = [
+    "zinc",
+    "sulfur",
     "soil_color",
     "soil_moisture_surface",
     "wind_speed_10m",

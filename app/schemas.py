@@ -30,8 +30,8 @@ ZONE_SAMPLE_EXAMPLE_MINIMAL = {
     "nitrogen": 100.0,
     "phosphorus": 40.0,
     "potassium": 70.0,
-    "zinc": 1.2,
-    "sulfur": 10.0,
+    "temperature_mean": 19.3,
+    "rainfall_mean": 6.2,
 }
 
 ZONE_SAMPLE_EXAMPLE_EXTENDED = {
@@ -72,8 +72,8 @@ ZONE_PREDICTION_REQUEST_OPENAPI_EXAMPLES = {
                     "nitrogen": 102.0,
                     "phosphorus": 39.0,
                     "potassium": 68.0,
-                    "zinc": 1.1,
-                    "sulfur": 11.0,
+                    "temperature_mean": 19.1,
+                    "rainfall_mean": 6.1,
                 },
                 {
                     "point_id": "A3",
@@ -81,8 +81,8 @@ ZONE_PREDICTION_REQUEST_OPENAPI_EXAMPLES = {
                     "nitrogen": 98.0,
                     "phosphorus": 41.0,
                     "potassium": 72.0,
-                    "zinc": 1.3,
-                    "sulfur": 9.0,
+                    "temperature_mean": 19.4,
+                    "rainfall_mean": 6.3,
                 },
             ],
         },
@@ -158,8 +158,8 @@ class ZoneSample(BaseModel):
     nitrogen: float = Field(..., ge=0, description="Nitrogen measurement for the sample point.")
     phosphorus: float = Field(..., ge=0, description="Phosphorus measurement for the sample point.")
     potassium: float = Field(..., ge=0, description="Potassium measurement for the sample point.")
-    zinc: float = Field(..., ge=0, description="Zinc measurement for the sample point.")
-    sulfur: float = Field(..., ge=0, description="Sulfur measurement for the sample point.")
+    zinc: float | None = Field(default=None, ge=0, description="Optional zinc measurement for the sample point.")
+    sulfur: float | None = Field(default=None, ge=0, description="Optional sulfur measurement for the sample point.")
     soil_moisture_surface: float | None = Field(
         default=None,
         ge=0,

@@ -4,17 +4,17 @@ Service ini menyediakan inferensi untuk model rekomendasi vegetasi/tanaman berba
 
 ## Artifact Yang Dipakai
 
-- Model: `artifacts/models/best_zone_model.joblib`
-- Preprocessing pipeline: `artifacts/pipelines/zone_preprocessing_pipeline.joblib`
-- Metrics/feature contract: `artifacts/zone_model_metrics.json`
-- Metadata zona: `data/processed/zone_dataset_metadata.json`
-- Feature summary: `artifacts/zone_feature_summary.csv`
+- Model: `artifacts/models/best_zone_model_expanded.joblib`
+- Preprocessing pipeline: `artifacts/pipelines/best_zone_pipeline_expanded.joblib`
+- Metrics/feature contract: `artifacts/best_model_metrics_expanded.json`
+- Metadata zona: `data/processed/zone_dataset_expanded_id_metadata.json`
+- Feature summary: `artifacts/zone_feature_summary_expanded.csv`
 
 Model aktif default mengikuti artifact saat ini:
 
-- `active_scenario`: `zone_mean_only`
-- `model_name`: `random_forest_zone_mean_only`
-- `feature_set_type`: `mean_only`
+- `active_scenario`: `zone_mean_plus_variability`
+- `model_name`: `extra_trees_zone_mean_plus_variability`
+- `feature_set_type`: `mean_plus_variability`
 
 ## Kenapa Input API Berupa Titik Mentah
 
@@ -129,8 +129,8 @@ Setiap elemen `samples`:
 - `nitrogen`: wajib
 - `phosphorus`: wajib
 - `potassium`: wajib
-- `zinc`: wajib
-- `sulfur`: wajib
+- `zinc`: opsional
+- `sulfur`: opsional
 - `soil_color`: opsional
 - `soil_moisture_surface`: opsional
 - `wind_speed_10m`: opsional
@@ -174,28 +174,19 @@ Service menghitung agregasi internal per fitur numerik:
 - `cv`
 - `missing_ratio`
 
-Namun, karena model aktif saat ini adalah `zone_mean_only`, hanya fitur yang memang dipakai model yang dikirim ke pipeline:
+Namun, karena model aktif saat ini adalah `zone_mean_plus_variability`, API mengirim fitur berikut ke pipeline:
 
 - `sample_count`
 - `context_sample_count`
 - `context_cluster_count`
-- `soil_color_mode`
-- `soil_color_dominant_ratio`
-- `ph_mean`
-- `nitrogen_mean`
-- `phosphorus_mean`
-- `potassium_mean`
-- `zinc_mean`
-- `sulfur_mean`
-- `soil_moisture_surface_mean`
-- `wind_speed_10m_mean`
-- `specific_humidity_mean_mean`
-- `temperature_mean_mean`
-- `temperature_seasonal_range_mean`
-- `rainfall_mean_mean`
-- `rainfall_total_proxy_mean`
-- `cloud_amount_mean`
-- `surface_pressure_mean`
+- semua agregasi `ph_*`
+- semua agregasi `nitrogen_*`
+- semua agregasi `phosphorus_*`
+- semua agregasi `potassium_*`
+- semua agregasi `temperature_mean_*`
+- semua agregasi `rainfall_mean_*`
+
+Secara total, model aktif memakai `57` feature columns.
 
 ## Asumsi Penting Inferensi
 

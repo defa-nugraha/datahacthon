@@ -2,6 +2,9 @@ numpy
 pandas
 scikit-learn
 joblib
+xgboost
+lightgbm
+catboost
 fastapi
 uvicorn
 pydantic

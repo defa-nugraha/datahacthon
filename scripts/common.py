@@ -30,9 +30,17 @@ ZONE_FEATURE_SUMMARY_PATH = ARTIFACTS_DIR / "zone_feature_summary.csv"
 ZONE_MODEL_METRICS_PATH = ARTIFACTS_DIR / "zone_model_metrics.json"
 ZONE_FEATURE_IMPORTANCE_PATH = ARTIFACTS_DIR / "zone_feature_importance.csv"
 ZONE_PREDICTION_SAMPLES_PATH = ARTIFACTS_DIR / "zone_prediction_samples.csv"
+MODEL_SELECTION_ANALYSIS_PATH = ARTIFACTS_DIR / "model_selection_analysis.md"
+MODEL_COMPARISON_PATH = ARTIFACTS_DIR / "model_comparison.csv"
+BEST_MODEL_METRICS_PATH = ARTIFACTS_DIR / "best_model_metrics.json"
+BEST_MODEL_SUMMARY_PATH = ARTIFACTS_DIR / "best_model_summary.md"
+BEST_MODEL_CONFUSION_MATRIX_PATH = ARTIFACTS_DIR / "confusion_matrix_best_model.png"
+BEST_MODEL_CLASSIFICATION_REPORT_PATH = ARTIFACTS_DIR / "classification_report_best_model.txt"
+BEST_MODEL_FEATURE_IMPORTANCE_PATH = ARTIFACTS_DIR / "feature_importance_best_model.csv"
 
 BEST_ZONE_MODEL_PATH = MODELS_DIR / "best_zone_model.joblib"
 BEST_ZONE_PREPROCESSOR_PATH = PIPELINES_DIR / "zone_preprocessing_pipeline.joblib"
+BEST_ZONE_PIPELINE_PATH = PIPELINES_DIR / "best_zone_pipeline.joblib"
 
 
 def ensure_project_dirs() -> None:

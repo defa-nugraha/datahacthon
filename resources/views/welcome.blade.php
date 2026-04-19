@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agro Smart - AI Crop Predictor</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 </head>
 <body class="bg-gray-100 font-sans p-8">
 
@@ -17,6 +18,63 @@
             </div>
         @endif
 
+        @if(isset($activePlant) && $activePlant != null)
+            <div class="w-full bg-gradient-to-r from-green-600 to-green-800 rounded-2xl shadow-lg p-6 mb-8 text-white relative overflow-hidden">
+                <div class="absolute -right-10 -top-10 opacity-20">
+                    <svg class="w-48 h-48" fill="currentColor" viewBox="0 0 20 20"><path d="M11 17a1 1 0 001.447.894l4-2A1 1 0 0017 15V9.236a1 1 0 00-1.447-.894l-4 2a1 1 0 00-.553.894V17zM15.211 6.276a1 1 0 000-1.788l-4.764-2.382a1 1 0 00-.894 0L4.789 4.488a1 1 0 000 1.788l4.764 2.382a1 1 0 00.894 0l4.764-2.382zM4.447 8.342A1 1 0 003 9.236V15a1 1 0 00.553.894l4 2A1 1 0 009 17v-5.764a1 1 0 00-.553-.894l-4-2z"></path></svg>
+                </div>
+
+                <div class="relative z-10 flex flex-col md:flex-row justify-between items-center gap-6">
+                    
+                    <div class="flex items-center gap-6 w-full md:w-1/2">
+                        <div class="bg-white/20 p-4 rounded-xl text-4xl">
+                            🍅
+                        </div>
+                        <div>
+                            <span class="text-green-200 text-sm font-bold tracking-wider uppercase">Fase Vegetatif</span>
+                            <h2 class="text-3xl font-black mt-1">Tomat Sayur (Zona A)</h2>
+                            <p class="text-green-100 mt-1">Ditanam pada: 12 April 2026</p>
+                        </div>
+                    </div>
+
+                    <div class="w-full md:w-1/2 bg-black/20 rounded-xl p-4">
+                        <div class="flex justify-between text-sm font-bold mb-2">
+                            <span>Hari ke-7</span>
+                            <span class="text-green-300">Estimasi Panen: 83 Hari Lagi</span>
+                        </div>
+                        <div class="w-full bg-black/30 rounded-full h-3 mb-2">
+                            <div class="bg-green-400 h-3 rounded-full" style="width: 15%"></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-md p-6 mb-8 border-l-4 border-yellow-400">
+                <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <span>📋</span> Action Plan Hari Ini
+                </h3>
+                
+                <div class="space-y-3">
+                    <label class="flex items-center gap-3 p-3 bg-gray-50 hover:bg-yellow-50 rounded-lg cursor-pointer border border-gray-100 transition">
+                        <input type="checkbox" class="w-5 h-5 text-green-600 rounded border-gray-300 focus:ring-green-500">
+                        <div>
+                            <p class="font-bold text-gray-700">Penyesuaian pH (Pengapuran)</p>
+                            <p class="text-sm text-gray-500">Taburkan dolomit 500gr di area pangkal bibit.</p>
+                        </div>
+                    </label>
+
+                    <label class="flex items-center gap-3 p-3 bg-gray-50 hover:bg-yellow-50 rounded-lg cursor-pointer border border-gray-100 transition">
+                        <input type="checkbox" class="w-5 h-5 text-green-600 rounded border-gray-300 focus:ring-green-500">
+                        <div>
+                            <p class="font-bold text-gray-700">Penyiraman Rutin</p>
+                            <p class="text-sm text-gray-500">Kelembapan saat ini 40%. Siram air 2 Liter.</p>
+                        </div>
+                    </label>
+                </div>
+            </div>
+        @else
+            @endif
         <div class="w-full bg-white p-6 rounded-lg shadow-md border-t-4 border-green-500 mb-8">
     
         <div class="flex flex-col md:flex-row justify-between items-center mb-6 border-b pb-4">
@@ -59,6 +117,16 @@
                 <span class="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full mt-2 inline-block">Sedikit Asam</span>
             </div>
 
+        </div>
+        <div class="w-full bg-white p-6 rounded-lg shadow-md mb-8">
+            <div class="flex justify-between items-center mb-4 border-b pb-2">
+                <h2 class="text-xl font-bold text-gray-800">Tren Kualitas Tanah (7 Hari Terakhir)</h2>
+                <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Data Zona A</span>
+            </div>
+            
+            <div class="relative h-80 w-full">
+                <canvas id="soilChart"></canvas>
+            </div>
         </div>
 
         <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r">
@@ -126,5 +194,10 @@
         </div>
     </div>
 
+    <script>
+    window.soilData = @json($chartData);
+    </script>
+
+    <script src="{{ asset('js/dashboard-chart.js') }}"></script>
 </body>
 </html>

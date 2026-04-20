@@ -8,24 +8,10 @@ class SoilDataController extends Controller
 {
     public function index()
     {
-        // 1. Data dummy buat grafik (yang kemaren)
-        $chartData = [
-            'labels' => ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Hari Ini'],
-            'nitrogen' => [30, 32, 35, 40, 42, 45, 42],
-            'phosphorus' => [10, 12, 11, 14, 15, 14, 15],
-            'potassium' => [110, 115, 112, 118, 120, 122, 120],
-            'ph' => [5.8, 5.9, 6.0, 6.1, 6.1, 6.2, 6.2]
-        ];
+        $chartData = [ /* ... data chart lu kemaren ... */ ];
 
-        // 2. Simulasi Status Tanaman Aktif
-        // Kalo lu mau ngetes tampilan biasa (belum nanam), ganti jadi: $activePlant = null;
-        $activePlant = [
-            'nama' => 'Tomat Sayur',
-            'tanggal_tanam' => '12 April 2026',
-            'hari_ke' => 7,
-            'estimasi_panen' => 83,
-            'progress' => 15 // dalam persen
-        ];
+        // Ambil data tanaman aktif dari session (kalo ga ada, isinya bakal null)
+        $activePlant = session('activePlant');
 
         return view('welcome', compact('chartData', 'activePlant'));
     }
@@ -45,5 +31,81 @@ class SoilDataController extends Controller
 
         // Lempar ke halaman rekomendasi
         return view('recommendation', compact('aiRecommendations'));
+    }
+
+    public function history()
+    {
+        // Mengambil semua data, diurutkan dari yang terbaru, dan tambahkan pagination
+        $historicalData = \App\Models\SoilData::orderBy('created_at', 'desc')->paginate(10);
+        
+        return view('history', compact('historicalData'));
+    }
+
+    public function startPlanting(Request $request)
+    {
+        // Tangkep ID/Nama tanaman dari tombol yang diklik
+        $cropId = $request->input('crop_id'); // Misal: 1 buat Tomat, 2 Jagung
+
+        // Simulasi data tanaman berdasarkan pilihan
+        $plantData = [];
+        if ($cropId == 1) {
+            $plantData = ['nama' => 'Tomat Sayur', 'estimasi_panen' => 83];
+        } elseif ($cropId == 2) {
+            $plantData = ['nama' => 'Jagung Manis', 'estimasi_panen' => 60];
+        } else {
+            $plantData = ['nama' => 'Cabai Merah', 'estimasi_panen' => 90];
+        }
+
+        // Siapin data lengkap buat disimpen di Session
+        $activePlant = [
+            'nama' => $plantData['nama'],
+            'tanggal_tanam' => now()->format('d M Y'),
+            'hari_ke' => 1,
+            'estimasi_panen' => $plantData['estimasi_panen'],
+            'progress' => 1 // Baru hari pertama
+        ];
+
+        // Simpan ke Session Laravel
+        session(['activePlant' => $activePlant]);
+
+        // Balikin ke Dashboard dengan pesan sukses
+        return redirect()->route('dashboard')->with('success', 'Berhasil memulai penanaman ' . $plantData['nama'] . '!');
+    }
+
+    public function resetPlanting()
+    {
+        // Hapus data tanaman dari session (Buat simulasi "Selesai Panen")
+        session()->forget('activePlant');
+        return redirect()->route('dashboard')->with('success', 'Lahan berhasil di-reset. Siap untuk penanaman baru.');
+    }
+
+    public function zones()
+    {
+        // Simulasi data perangkat IoT di berbagai zona
+        $iotDevices = [
+            [
+                'zona' => 'Zona A (Utara)',
+                'mac_address' => 'ESP32-A8:4F:23',
+                'status' => 'Online',
+                'last_ping' => 'Barusan',
+                'tanaman' => 'Tomat Sayur'
+            ],
+            [
+                'zona' => 'Zona B (Selatan)',
+                'mac_address' => 'ESP32-B2:11:9C',
+                'status' => 'Offline',
+                'last_ping' => '2 Jam yang lalu',
+                'tanaman' => 'Belum ditanam'
+            ],
+            [
+                'zona' => 'Zona C (Timur)',
+                'mac_address' => 'Belum ada alat',
+                'status' => 'Menunggu Setup',
+                'last_ping' => '-',
+                'tanaman' => 'Belum ditanam'
+            ]
+        ];
+
+        return view('zones', compact('iotDevices'));
     }
 }

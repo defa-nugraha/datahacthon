@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Vera Intelligence - Pemantauan Real-time</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "secondary": "#5e5e5c",
+                      "secondary-fixed-dim": "#c8c6c3",
+                      "on-secondary": "#ffffff",
+                      "surface-container-highest": "#e3e3de",
+                      "on-tertiary": "#ffffff",
+                      "surface-container": "#eeeee9",
+                      "surface-container-lowest": "#ffffff",
+                      "inverse-on-surface": "#f1f1ec",
+                      "background": "#fafaf4",
+                      "on-primary-fixed": "#002201",
+                      "tertiary": "#003c5f",
+                      "primary-fixed-dim": "#a1d494",
+                      "surface": "#fafaf4",
+                      "on-tertiary-fixed": "#001d32",
+                      "on-primary-fixed-variant": "#23501e",
+                      "outline": "#72796e",
+                      "on-tertiary-fixed-variant": "#004b74",
+                      "on-primary-container": "#9dd090",
+                      "primary-fixed": "#bcf0ae",
+                      "secondary-fixed": "#e4e2de",
+                      "on-tertiary-container": "#8bc8ff",
+                      "surface-container-low": "#f4f4ee",
+                      "outline-variant": "#c2c9bb",
+                      "primary-container": "#2d5a27",
+                      "surface-dim": "#dadad5",
+                      "primary": "#154212",
+                      "surface-container-high": "#e8e8e3",
+                      "on-surface": "#1a1c19",
+                      "on-primary": "#ffffff",
+                      "error-container": "#ffdad6",
+                      "surface-tint": "#3b6934",
+                      "on-secondary-fixed-variant": "#474744",
+                      "inverse-primary": "#a1d494",
+                      "tertiary-fixed-dim": "#94ccff",
+                      "on-background": "#1a1c19",
+                      "on-secondary-fixed": "#1b1c1a",
+                      "on-error-container": "#93000a",
+                      "tertiary-fixed": "#cde5ff",
+                      "surface-bright": "#fafaf4",
+                      "secondary-container": "#e1dfdc",
+                      "inverse-surface": "#2f312e",
+                      "on-secondary-container": "#636360",
+                      "on-surface-variant": "#42493e",
+                      "error": "#ba1a1a",
+                      "tertiary-container": "#005482",
+                      "surface-variant": "#e3e3de",
+                      "on-error": "#ffffff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "xl": "80px",
+                      "sm": "12px",
+                      "gutter": "24px",
+                      "xs": "4px",
+                      "md": "24px",
+                      "margin": "32px",
+                      "base": "8px",
+                      "lg": "48px"
+              },
+              "fontFamily": {
+                      "tabular-nums": [
+                              "Inter"
+                      ],
+                      "label-caps": [
+                              "Inter"
+                      ],
+                      "h2": [
+                              "Inter"
+                      ],
+                      "h3": [
+                              "Inter"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "h1": [
+                              "Inter"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "body-sm": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "tabular-nums": [
+                              "16px",
+                              {
+                                      "lineHeight": "1",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "label-caps": [
+                              "12px",
+                              {
+                                      "lineHeight": "1",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "h2": [
+                              "32px",
+                              {
+                                      "lineHeight": "1.25",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "h3": [
+                              "24px",
+                              {
+                                      "lineHeight": "1.3",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "1.6",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "h1": [
+                              "40px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "1.5",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-sm": [
+                              "14px",
+                              {
+                                      "lineHeight": "1.5",
+                                      "fontWeight": "400"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined[data-weight="fill"] {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Custom scrollbar for clean aesthetic */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #fafaf4; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #dadad5; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #c8c6c3; 
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md antialiased flex h-screen overflow-hidden">
+<!-- SideNavBar (Shared Component) -->
+<nav class="bg-white dark:bg-stone-950 text-green-800 dark:text-green-400 font-inter text-sm font-medium h-screen w-64 border-r rounded-none border-stone-200 dark:border-stone-800 flat no shadows fixed left-0 top-0 h-full flex flex-col z-50 hidden md:flex">
+<!-- Header -->
+<div class="p-6 border-b border-stone-200 dark:border-stone-800">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-primary-container rounded-lg flex items-center justify-center text-on-primary-container">
+<span class="material-symbols-outlined" data-weight="fill">eco</span>
+</div>
+<div>
+<h1 class="text-xl font-bold text-green-900 dark:text-stone-100 font-h3 text-h3 tracking-tight">Vera AI</h1>
+<p class="font-body-sm text-body-sm text-secondary">Precision Vegetation</p>
+</div>
+</div>
+<button class="mt-6 w-full bg-primary hover:bg-primary/90 text-on-primary font-label-caps text-label-caps py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors">
+<span class="material-symbols-outlined text-[18px]">add</span>
+                Run New Analysis
+            </button>
+</div>
+<!-- Main Nav -->
+<div class="flex-1 py-6 overflow-y-auto px-4 flex flex-col gap-2">
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-stone-600 dark:text-stone-400 hover:text-green-700 hover:bg-stone-100 dark:hover:bg-stone-900 transition-colors duration-150 group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg bg-stone-50 dark:bg-stone-900 text-green-800 dark:text-green-400 border-r-4 border-green-800 active:translate-x-1 transition-transform group" href="#">
+<span class="material-symbols-outlined text-primary" data-weight="fill">potted_plant</span>
+<span class="font-semibold text-primary">Field Zones</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-stone-600 dark:text-stone-400 hover:text-green-700 hover:bg-stone-100 dark:hover:bg-stone-900 transition-colors duration-150 group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary">science</span>
+<span>Soil Lab</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-stone-600 dark:text-stone-400 hover:text-green-700 hover:bg-stone-100 dark:hover:bg-stone-900 transition-colors duration-150 group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary">psychology</span>
+<span>AI Advisor</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-stone-600 dark:text-stone-400 hover:text-green-700 hover:bg-stone-100 dark:hover:bg-stone-900 transition-colors duration-150 group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary">analytics</span>
+<span>Reports</span>
+</a>
+</div>
+<!-- Footer Nav -->
+<div class="p-4 border-t border-stone-200 dark:border-stone-800 flex flex-col gap-2">
+<a class="flex items-center gap-3 px-4 py-2 rounded-lg text-stone-600 dark:text-stone-400 hover:text-green-700 hover:bg-stone-100 dark:hover:bg-stone-900 transition-colors duration-150 group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary">settings</span>
+<span>Settings</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 rounded-lg text-stone-600 dark:text-stone-400 hover:text-green-700 hover:bg-stone-100 dark:hover:bg-stone-900 transition-colors duration-150 group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary">contact_support</span>
+<span>Support</span>
+</a>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col md:ml-64 relative min-h-screen">
+<!-- TopAppBar (Shared Component) -->
+<header class="bg-white/90 dark:bg-stone-950/90 backdrop-blur-md text-green-800 dark:text-green-400 font-inter antialiased tracking-tight docked full-width top-0 border-b border-stone-200/60 dark:border-stone-800 shadow-sm flex justify-between items-center w-full px-6 py-3 sticky top-0 z-40">
+<!-- Left: Mobile Menu / Search (Simulated for this specific task) -->
+<div class="flex items-center gap-4">
+<button class="md:hidden text-secondary hover:text-primary hover:bg-stone-50 dark:hover:bg-stone-900 transition-all duration-200 p-2 rounded-full active:scale-95 transition-transform">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<div class="hidden md:flex items-center bg-surface-container-high rounded-full px-4 py-2 text-on-surface-variant focus-within:ring-2 focus-within:ring-primary focus-within:bg-white transition-all w-64">
+<span class="material-symbols-outlined mr-2 text-[20px]">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm w-full placeholder-on-surface-variant/70 p-0" placeholder="Search fields, reports..." type="text"/>
+</div>
+</div>
+<!-- Right: Actions & Profile -->
+<div class="flex items-center gap-2">
+<button class="text-stone-500 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-stone-900 transition-all duration-200 p-2 rounded-full active:scale-95 transition-transform relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<button class="text-stone-500 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-stone-900 transition-all duration-200 p-2 rounded-full active:scale-95 transition-transform hidden sm:block">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<button class="text-stone-500 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-stone-900 transition-all duration-200 p-2 rounded-full active:scale-95 transition-transform hidden sm:block">
+<span class="material-symbols-outlined">help</span>
+</button>
+<div class="h-8 w-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center ml-2 border-2 border-white shadow-sm cursor-pointer hover:ring-2 hover:ring-primary transition-all">
+<span class="font-label-caps text-label-caps">JD</span>
+</div>
+</div>
+</header>
+<!-- Page Content -->
+<div class="flex-1 overflow-y-auto p-4 md:p-8 lg:p-margin pb-32">
+<!-- Page Header -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-md gap-4">
+<div>
+<div class="flex items-center gap-3 mb-1">
+<h2 class="font-h2 text-h2 text-on-background">Pemantauan Real-time: Zona Selatan</h2>
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-error-container text-on-error-container font-label-caps text-[10px] uppercase tracking-wider">
+<span class="w-2 h-2 rounded-full bg-error animate-pulse"></span>
+                            Live
+                        </span>
+</div>
+<p class="font-body-md text-body-md text-secondary">Sensor Grid Alpha-7 | Terakhir diperbarui: Baru saja</p>
+</div>
+<div class="flex items-center gap-3 w-full md:w-auto">
+<button class="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-surface-container border border-outline-variant rounded-lg text-on-surface hover:bg-surface-container-high transition-colors font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-[18px]">calendar_today</span>
+                        Hari Ini
+                    </button>
+<button class="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-surface-container border border-outline-variant rounded-lg text-on-surface hover:bg-surface-container-high transition-colors font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-[18px]">tune</span>
+                        Filter
+                    </button>
+</div>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+<!-- Hero/Primary Metric: Health Status (Span 4 cols) -->
+<div class="md:col-span-4 bg-surface-container-lowest border border-[#5D4037]/10 rounded-xl shadow-[0px_4px_20px_rgba(0,0,0,0.04)] p-6 flex flex-col justify-between relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4 opacity-10 text-primary">
+<span class="material-symbols-outlined text-[120px] leading-none" data-weight="fill">spa</span>
+</div>
+<div>
+<h3 class="font-h3 text-h3 text-secondary mb-2 relative z-10">Status Kesehatan Tanaman</h3>
+<p class="font-body-sm text-body-sm text-secondary-fixed-dim relative z-10 mb-6">Agregat keseluruhan area Zona Selatan</p>
+</div>
+<div class="relative z-10">
+<div class="flex items-baseline gap-2 mb-2">
+<span class="font-h1 text-[64px] leading-none text-primary font-bold tracking-tighter">92%</span>
+<span class="font-body-lg text-body-lg text-primary-container font-medium">Sehat</span>
+</div>
+<!-- Progress bar -->
+<div class="h-2 w-full bg-surface-container-highest rounded-full overflow-hidden mt-4">
+<div class="h-full bg-primary rounded-full w-[92%]"></div>
+</div>
+<div class="flex justify-between mt-2 font-tabular-nums text-tabular-nums text-xs text-secondary">
+<span>0%</span>
+<span>Optimal Range: 85-100%</span>
+<span>100%</span>
+</div>
+</div>
+</div>
+<!-- AI Advisory (Span 8 cols) -->
+<div class="md:col-span-8 bg-surface-container-lowest border border-[#5D4037]/10 rounded-xl shadow-[0px_4px_20px_rgba(0,0,0,0.04)] flex flex-col relative overflow-hidden">
+<!-- Decorative background blur -->
+<div class="absolute -top-24 -right-24 w-64 h-64 bg-tertiary-container/10 rounded-full blur-3xl"></div>
+<div class="p-6 border-b border-surface-variant flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-tertiary-container text-on-tertiary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">psychology</span>
+</div>
+<h3 class="font-h3 text-[20px] font-semibold text-on-surface">AI Adaptive Advice</h3>
+</div>
+<div class="p-6 flex-1 flex flex-col justify-center">
+<div class="flex gap-4 items-start">
+<div class="mt-1">
+<span class="material-symbols-outlined text-tertiary text-[28px]">water_drop</span>
+</div>
+<div>
+<p class="font-body-lg text-body-lg text-on-surface mb-4 leading-relaxed">
+<strong class="font-semibold text-tertiary">Kelembapan tanah menurun di sektor 4.</strong> AI menyarankan aktivasi irigasi selama 15 menit untuk mengembalikan tingkat kelembapan optimal sebelum suhu puncak siang hari.
+                                </p>
+<div class="flex gap-3">
+<button class="px-6 py-2.5 bg-tertiary hover:bg-tertiary/90 text-on-tertiary rounded-lg font-label-caps text-label-caps transition-colors shadow-sm flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">play_arrow</span>
+                                        Aktifkan Irigasi
+                                    </button>
+<button class="px-6 py-2.5 border border-outline-variant text-secondary hover:bg-surface-container rounded-lg font-label-caps text-label-caps transition-colors">
+                                        Abaikan
+                                    </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Live Metrics Grid (Span 12 cols, grid inside) -->
+<div class="md:col-span-12">
+<h3 class="font-h3 text-h3 text-on-surface mb-sm flex items-center gap-2">
+<span class="material-symbols-outlined">sensors</span>
+                        Metrik Tanah Live
+                    </h3>
+<div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
+<!-- Metric: pH -->
+<div class="bg-surface-container-lowest border border-[#5D4037]/10 rounded-xl p-4 shadow-[0px_4px_20px_rgba(0,0,0,0.04)] flex flex-col">
+<div class="flex justify-between items-start mb-4">
+<div class="w-8 h-8 rounded-full bg-surface-container text-secondary flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">science</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant text-[18px]">more_horiz</span>
+</div>
+<p class="font-label-caps text-label-caps text-secondary mb-1">pH Tanah</p>
+<div class="flex items-end gap-2">
+<span class="font-tabular-nums text-[32px] leading-none font-bold text-on-surface">6.4</span>
+<span class="material-symbols-outlined text-outline text-[20px] mb-1">horizontal_rule</span> <!-- Stable -->
+</div>
+<p class="font-body-sm text-xs mt-2 text-secondary-fixed-dim">Optimal: 6.0 - 7.0</p>
+</div>
+<!-- Metric: Nitrogen -->
+<div class="bg-surface-container-lowest border border-[#5D4037]/10 rounded-xl p-4 shadow-[0px_4px_20px_rgba(0,0,0,0.04)] flex flex-col relative overflow-hidden">
+<!-- Subtle active state border -->
+<div class="absolute inset-0 border-2 border-primary/20 rounded-xl pointer-events-none"></div>
+<div class="flex justify-between items-start mb-4">
+<div class="w-8 h-8 rounded-full bg-primary-container/20 text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">grass</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant text-[18px]">more_horiz</span>
+</div>
+<p class="font-label-caps text-label-caps text-[#5D4037] mb-1">Nitrogen (N)</p>
+<div class="flex items-end gap-2">
+<span class="font-tabular-nums text-[32px] leading-none font-bold text-primary">110</span>
+<span class="font-body-sm text-xs text-secondary mb-1">mg/kg</span>
+<span class="material-symbols-outlined text-primary text-[20px] mb-1">trending_up</span> <!-- Rising -->
+</div>
+<p class="font-body-sm text-xs mt-2 text-secondary-fixed-dim">Target: 100 mg/kg</p>
+</div>
+<!-- Metric: Phosphorus -->
+<div class="bg-surface-container-lowest border border-[#5D4037]/10 rounded-xl p-4 shadow-[0px_4px_20px_rgba(0,0,0,0.04)] flex flex-col">
+<div class="flex justify-between items-start mb-4">
+<div class="w-8 h-8 rounded-full bg-surface-container text-secondary flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">scatter_plot</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant text-[18px]">more_horiz</span>
+</div>
+<p class="font-label-caps text-label-caps text-[#5D4037] mb-1">Fosfor (P)</p>
+<div class="flex items-end gap-2">
+<span class="font-tabular-nums text-[32px] leading-none font-bold text-on-surface">45</span>
+<span class="font-body-sm text-xs text-secondary mb-1">mg/kg</span>
+<span class="material-symbols-outlined text-outline text-[20px] mb-1">horizontal_rule</span> <!-- Stable -->
+</div>
+<p class="font-body-sm text-xs mt-2 text-secondary-fixed-dim">Target: 40-50 mg/kg</p>
+</div>
+<!-- Metric: Potassium -->
+<div class="bg-surface-container-lowest border border-[#5D4037]/10 rounded-xl p-4 shadow-[0px_4px_20px_rgba(0,0,0,0.04)] flex flex-col">
+<div class="flex justify-between items-start mb-4">
+<div class="w-8 h-8 rounded-full bg-surface-container text-secondary flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">grain</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant text-[18px]">more_horiz</span>
+</div>
+<p class="font-label-caps text-label-caps text-[#5D4037] mb-1">Kalium (K)</p>
+<div class="flex items-end gap-2">
+<span class="font-tabular-nums text-[32px] leading-none font-bold text-on-surface">85</span>
+<span class="font-body-sm text-xs text-secondary mb-1">mg/kg</span>
+<span class="material-symbols-outlined text-error text-[20px] mb-1">trending_down</span> <!-- Falling -->
+</div>
+<p class="font-body-sm text-xs mt-2 text-secondary-fixed-dim">Target: 90 mg/kg</p>
+</div>
+<!-- Metric: Soil Moisture -->
+<div class="bg-surface-container-lowest border border-[#5D4037]/10 rounded-xl p-4 shadow-[0px_4px_20px_rgba(0,0,0,0.04)] flex flex-col">
+<div class="flex justify-between items-start mb-4">
+<div class="w-8 h-8 rounded-full bg-tertiary-container/10 text-tertiary flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">humidity_percentage</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant text-[18px]">more_horiz</span>
+</div>
+<p class="font-label-caps text-label-caps text-[#5D4037] mb-1">Kelembapan Tanah</p>
+<div class="flex items-end gap-2">
+<span class="font-tabular-nums text-[32px] leading-none font-bold text-tertiary">42%</span>
+<span class="material-symbols-outlined text-tertiary text-[20px] mb-1">trending_down</span> <!-- Falling -->
+</div>
+<p class="font-body-sm text-xs mt-2 text-secondary-fixed-dim">Peringatan: Menurun di Sektor 4</p>
+</div>
+</div>
+</div>
+<!-- Charts & Alerts Row -->
+<!-- Chart (Span 8 cols) -->
+<div class="md:col-span-8 bg-surface-container-lowest border border-[#5D4037]/10 rounded-xl shadow-[0px_4px_20px_rgba(0,0,0,0.04)] p-6 flex flex-col">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-h3 text-[20px] font-semibold text-on-surface">Grafik 24 Jam Terakhir</h3>
+<div class="flex gap-2">
+<span class="flex items-center gap-1 font-label-caps text-label-caps text-primary"><span class="w-2 h-2 rounded-full bg-primary"></span> NPK</span>
+<span class="flex items-center gap-1 font-label-caps text-label-caps text-tertiary ml-2"><span class="w-2 h-2 rounded-full bg-tertiary"></span> Kelembapan</span>
+</div>
+</div>
+<!-- Simulated Chart Area using CSS Gradients/Borders -->
+<div class="flex-1 relative min-h-[250px] w-full border-b border-l border-surface-variant flex items-end pt-4 pb-0 pl-0">
+<!-- Y-Axis Labels -->
+<div class="absolute -left-8 top-0 bottom-0 flex flex-col justify-between text-xs text-secondary font-tabular-nums pb-2 h-full">
+<span>120</span>
+<span>90</span>
+<span>60</span>
+<span>30</span>
+<span>0</span>
+</div>
+<!-- Grid Lines -->
+<div class="absolute inset-0 flex flex-col justify-between w-full h-full pointer-events-none pb-2">
+<div class="w-full border-b border-surface-variant border-dashed opacity-50"></div>
+<div class="w-full border-b border-surface-variant border-dashed opacity-50"></div>
+<div class="w-full border-b border-surface-variant border-dashed opacity-50"></div>
+<div class="w-full border-b border-surface-variant border-dashed opacity-50"></div>
+<div></div>
+</div>
+<!-- Simulated NPK Trend Line (SVG) -->
+<svg class="absolute inset-0 w-full h-full pb-2 overflow-visible" preserveaspectratio="none" viewbox="0 0 100 100">
+<!-- Moisture Line (Data Blue) -->
+<path d="M0,60 C20,55 40,65 60,70 C80,75 90,80 100,85" fill="none" stroke="#003c5f" stroke-linejoin="round" stroke-width="2"></path>
+<!-- NPK Line (Leaf Green) -->
+<path d="M0,30 C20,25 40,35 60,20 C80,10 90,15 100,5" fill="none" stroke="#154212" stroke-linejoin="round" stroke-width="2"></path>
+<!-- Area fill under NPK -->
+<path d="M0,30 C20,25 40,35 60,20 C80,10 90,15 100,5 L100,100 L0,100 Z" fill="url(#greenGradient)" opacity="0.1"></path>
+<defs>
+<lineargradient id="greenGradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#154212"></stop>
+<stop offset="100%" stop-color="#fafaf4" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+</svg>
+<!-- X-Axis Labels -->
+<div class="absolute -bottom-6 left-0 w-full flex justify-between text-xs text-secondary font-tabular-nums px-2">
+<span>00:00</span>
+<span>06:00</span>
+<span>12:00</span>
+<span>18:00</span>
+<span>Sekarang</span>
+</div>
+</div>
+</div>
+<!-- System Alerts (Span 4 cols) -->
+<div class="md:col-span-4 bg-surface-container-lowest border border-[#5D4037]/10 rounded-xl shadow-[0px_4px_20px_rgba(0,0,0,0.04)] flex flex-col">
+<div class="p-6 border-b border-surface-variant flex justify-between items-center">
+<h3 class="font-h3 text-[20px] font-semibold text-on-surface">Peringatan Sistem</h3>
+<span class="bg-surface-variant text-on-surface-variant text-xs font-bold px-2 py-1 rounded-full">2 Baru</span>
+</div>
+<div class="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
+<!-- Alert Item 1: Actionable -->
+<div class="p-4 rounded-lg bg-tertiary-container/5 border border-tertiary-container/20 flex gap-3">
+<div class="mt-0.5">
+<span class="material-symbols-outlined text-tertiary text-[20px]">warning</span>
+</div>
+<div>
+<h4 class="font-label-caps text-label-caps text-tertiary mb-1">Low Moisture</h4>
+<p class="font-body-sm text-body-sm text-on-surface mb-2">Kelembapan kritis (42%) di Sektor 4.</p>
+<span class="text-[10px] text-secondary font-tabular-nums">10 menit yang lalu</span>
+</div>
+</div>
+<!-- Alert Item 2: Status -->
+<div class="p-4 rounded-lg bg-surface-container flex gap-3">
+<div class="mt-0.5">
+<span class="material-symbols-outlined text-primary text-[20px]">check_circle</span>
+</div>
+<div>
+<h4 class="font-label-caps text-label-caps text-primary mb-1">Optimal pH</h4>
+<p class="font-body-sm text-body-sm text-on-surface mb-2">Keseimbangan pH tercapai setelah treatment kemarin.</p>
+<span class="text-[10px] text-secondary font-tabular-nums">2 jam yang lalu</span>
+</div>
+</div>
+<!-- Alert Item 3: Status -->
+<div class="p-4 rounded-lg bg-surface-container flex gap-3">
+<div class="mt-0.5">
+<span class="material-symbols-outlined text-[#5D4037] text-[20px]">info</span>
+</div>
+<div>
+<h4 class="font-label-caps text-label-caps text-[#5D4037] mb-1">Sensor Kalibrasi</h4>
+<p class="font-body-sm text-body-sm text-on-surface mb-2">Sensor Alpha-7 dijadwalkan kalibrasi rutin minggu depan.</p>
+<span class="text-[10px] text-secondary font-tabular-nums">1 hari yang lalu</span>
+</div>
+</div>
+</div>
+</div>
+</div> <!-- End Bento Grid -->
+</div>
+</main>
+</body></html>

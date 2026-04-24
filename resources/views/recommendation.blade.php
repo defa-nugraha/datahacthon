@@ -1,75 +1,137 @@
 @extends('layouts.app')
-@section('title', 'Hasil Analisis ML - Agro Smart')
+
+@section('title', 'Recommendation Results - Vera AI')
 
 @section('content')
-<div class="max-w-6xl mx-auto">
-    
-    <div class="text-center mb-10">
-        <h1 class="text-3xl font-bold text-gray-800">Hasil Analisis Model ML</h1>
-        <p class="text-gray-600 mt-2">Berdasarkan data hara yang diinput, berikut 3 rekomendasi terbaik beserta risikonya.</p>
-    </div>
-
-    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8 flex justify-center gap-6 text-sm">
-        <span class="text-blue-800 font-semibold">Data Dianalisis:</span>
-        <span class="text-blue-700">Nitrogen: {{ $inputData['nitrogen'] ?? 0 }}</span>
-        <span class="text-blue-700">Fosfor: {{ $inputData['phosphorus'] ?? 0 }}</span>
-        <span class="text-blue-700">Kalium: {{ $inputData['potassium'] ?? 0 }}</span>
-        <span class="text-blue-700">pH: {{ $inputData['ph'] ?? 0 }}</span>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        @foreach($recommendations as $crop)
-        <div class="group relative bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-green-500 overflow-hidden flex flex-col">
-            
-            <div class="absolute top-4 right-4 z-10">
-                <span class="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full border border-green-200">
-                    {{ $crop['match_rate'] }}% Match
-                </span>
+    <div class="mx-auto max-w-7xl space-y-6">
+        <div class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+            <div>
+                <p class="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">AI Advisor / Recommendation</p>
+                <h1 class="mt-2 text-4xl font-extrabold tracking-tight text-slate-900">Recommendation Results</h1>
+                <p class="mt-2 max-w-3xl text-base text-slate-600">
+                    Berdasarkan komposisi unsur hara dan profil zona {{ $zone->name }}, berikut rekomendasi tanaman paling relevan saat ini.
+                </p>
             </div>
-
-            <div class="h-40 bg-gray-50 flex items-center justify-center text-6xl">
-                {{ $crop['icon'] }}
-            </div>
-
-            <div class="p-6 flex-grow">
-                <h3 class="text-xl font-bold text-gray-800 mb-2">{{ $crop['name'] }}</h3>
-                
-                <div class="mb-4 bg-red-50 p-3 rounded-lg border border-red-100">
-                    <span class="text-[10px] font-black text-red-400 uppercase tracking-widest">Risiko Terdeteksi</span>
-                    <p class="text-sm text-red-700 font-medium mt-1 leading-relaxed">
-                        ⚠ {{ $crop['risk_note'] }}
-                    </p>
-                </div>
-
-                <div class="space-y-2 mb-6 border-t pt-4">
-                    <div class="flex justify-between text-sm">
-                        <span class="text-gray-500">Estimasi Panen</span>
-                        <span class="font-semibold text-gray-700">{{ $crop['harvest_time'] }} Hari</span>
-                    </div>
-                    <div class="flex justify-between text-sm">
-                        <span class="text-gray-500">Kebutuhan Air</span>
-                        <span class="font-semibold text-gray-700">{{ $crop['water_need'] }}</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="p-6 pt-0">
-                <form action="{{ route('plant.start') }}" method="POST">
-                    @csrf
-                    <input type="hidden" name="crop_id" value="{{ $crop['id'] }}">
-                    <button type="submit" class="w-full bg-gray-900 group-hover:bg-green-600 text-white font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2">
-                        Mulai Tanam Sekarang
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                    </button>
-                </form>
+            <div class="rounded-full border border-outline bg-surface px-4 py-2 text-sm font-semibold text-slate-500">
+                Model: {{ $model_info['model_name'] ?? 'N/A' }}
             </div>
         </div>
-        @endforeach
-    </div>
 
-    <div class="text-center mt-8">
-        <a href="{{ route('dashboard') }}" class="text-gray-500 hover:text-gray-800 underline">Batalkan & Kembali ke Dashboard</a>
-    </div>
+        @if (!empty($warnings))
+            <div class="rounded-3xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900">
+                <div class="font-semibold">Catatan analisis</div>
+                <ul class="mt-2 list-disc space-y-1 pl-5">
+                    @foreach ($warnings as $warning)
+                        <li>{{ $warning }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
 
-</div>
+        <div class="grid gap-6 xl:grid-cols-[1.85fr,0.95fr]">
+            <section class="overflow-hidden rounded-3xl border border-outline bg-surface shadow-panel">
+                <div class="relative overflow-hidden bg-[radial-gradient(circle_at_top_right,_rgba(255,255,255,0.14),_transparent_35%),linear-gradient(135deg,#1f5d1a_0%,#154212_45%,#11360f_100%)] px-8 py-10 text-white">
+                    <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&q=80')] bg-cover bg-center opacity-30"></div>
+                    <div class="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+                        <div>
+                            <div class="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-100">Primary Match</div>
+                            <h2 class="mt-3 text-5xl font-extrabold tracking-tight">{{ $primary_recommendation['label'] }}</h2>
+                            <p class="mt-3 max-w-2xl text-base text-emerald-50">
+                                Model menemukan kecocokan tertinggi antara profil hara zona ini dan pola pertumbuhan tanaman tersebut.
+                            </p>
+                        </div>
+                        <div class="inline-flex items-center gap-3 rounded-full bg-white/10 px-5 py-3 text-xl font-bold backdrop-blur">
+                            <span class="material-symbols-outlined">verified</span>
+                            <span>{{ number_format($primary_recommendation['confidence'], 1) }}% Confidence</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-6 md:p-8">
+                    <div class="rounded-2xl border border-emerald-100 bg-emerald-50 px-5 py-5">
+                        <div class="flex items-center gap-3 text-primary">
+                            <span class="material-symbols-outlined">psychology</span>
+                            <span class="text-lg font-bold">AI Reasoning</span>
+                        </div>
+                        <p class="mt-3 text-base leading-7 text-slate-700">{{ $primary_recommendation['reasoning'] }}</p>
+                    </div>
+
+                    <div class="mt-6 grid gap-4 md:grid-cols-3">
+                        <div class="rounded-2xl border border-outline bg-surface-soft px-5 py-5">
+                            <div class="text-sm font-semibold text-slate-500">Water Needs</div>
+                            <div class="mt-3 text-2xl font-bold text-slate-900">{{ $primary_recommendation['water_need'] }}</div>
+                        </div>
+                        <div class="rounded-2xl border border-outline bg-surface-soft px-5 py-5">
+                            <div class="text-sm font-semibold text-slate-500">Harvest Time</div>
+                            <div class="mt-3 text-2xl font-bold text-slate-900">{{ $primary_recommendation['harvest_time_days'] }} hari</div>
+                        </div>
+                        <div class="rounded-2xl border border-outline bg-surface-soft px-5 py-5">
+                            <div class="text-sm font-semibold text-slate-500">Risk Factor</div>
+                            <div class="mt-3 text-2xl font-bold text-slate-900">{{ $primary_recommendation['risk_factor'] }}</div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6">
+                        <div class="flex items-center justify-between text-sm font-semibold text-slate-500">
+                            <span>Overall Suitability Score</span>
+                            <span>{{ number_format($primary_recommendation['suitability_score'], 1) }}%</span>
+                        </div>
+                        <div class="mt-2 h-3 rounded-full bg-slate-200">
+                            <div class="h-3 rounded-full bg-primary" style="width: {{ $primary_recommendation['suitability_score'] }}%"></div>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 grid gap-3 md:grid-cols-2">
+                        <form action="{{ route('zones.plant.start', $zone) }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="crop_name" value="{{ $primary_recommendation['label'] }}">
+                            <button type="submit" class="w-full rounded-2xl bg-primary px-6 py-4 text-base font-semibold text-white transition hover:bg-success">
+                                Mulai Tanam
+                            </button>
+                        </form>
+                        <a href="{{ route('zones.show', $zone) }}" class="w-full rounded-2xl border border-outline px-6 py-4 text-center text-base font-semibold text-primary transition hover:border-primary hover:bg-primary-soft">
+                            Simpan & Kembali ke Zona
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            <aside class="rounded-3xl border border-outline bg-surface p-6 shadow-panel">
+                <h2 class="text-3xl font-bold tracking-tight text-slate-900">Top Alternatives</h2>
+                <div class="mt-5 space-y-5">
+                    @foreach ($alternatives as $alternative)
+                        <div>
+                            <div class="flex items-center justify-between gap-3">
+                                <div class="flex items-center gap-3">
+                                    <div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary-soft text-primary font-bold">
+                                        {{ $alternative['rank'] }}
+                                    </div>
+                                    <div class="font-semibold text-slate-900">{{ $alternative['label'] }}</div>
+                                </div>
+                                <div class="text-lg font-bold text-slate-700">{{ $alternative['match_rate'] }}%</div>
+                            </div>
+                            <div class="mt-3 h-2 rounded-full bg-slate-200">
+                                <div class="h-2 rounded-full bg-primary" style="width: {{ $alternative['match_rate'] }}%"></div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+
+                <div class="mt-10 rounded-2xl border border-outline bg-surface-soft p-5">
+                    <div class="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">Agregasi Zona</div>
+                    <div class="mt-4 space-y-3 text-sm">
+                        <div class="flex justify-between"><span class="text-slate-500">pH Mean</span><span class="font-semibold text-slate-900">{{ number_format(data_get($aggregated_features, 'ph.mean', data_get($aggregated_features, 'ph_mean', 0)), 2) }}</span></div>
+                        <div class="flex justify-between"><span class="text-slate-500">Nitrogen Mean</span><span class="font-semibold text-slate-900">{{ number_format(data_get($aggregated_features, 'nitrogen.mean', data_get($aggregated_features, 'nitrogen_mean', 0)), 1) }}</span></div>
+                        <div class="flex justify-between"><span class="text-slate-500">Phosphorus Mean</span><span class="font-semibold text-slate-900">{{ number_format(data_get($aggregated_features, 'phosphorus.mean', data_get($aggregated_features, 'phosphorus_mean', 0)), 1) }}</span></div>
+                        <div class="flex justify-between"><span class="text-slate-500">Potassium Mean</span><span class="font-semibold text-slate-900">{{ number_format(data_get($aggregated_features, 'potassium.mean', data_get($aggregated_features, 'potassium_mean', 0)), 1) }}</span></div>
+                    </div>
+                </div>
+
+                <a href="{{ route('zones.show', $zone) }}" class="mt-8 flex w-full items-center justify-center gap-2 rounded-2xl border border-outline px-5 py-4 text-base font-semibold text-primary transition hover:border-primary hover:bg-primary-soft">
+                    <span class="material-symbols-outlined text-[20px]">compare_arrows</span>
+                    <span>Bandingkan dengan Zona</span>
+                </a>
+            </aside>
+        </div>
+    </div>
 @endsection

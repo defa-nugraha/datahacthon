@@ -2,110 +2,244 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\SoilData;
+use App\Models\Zone;
+use App\Services\AiAdvisorService;
+use App\Services\ZoneAnalyticsService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Illuminate\View\View;
 
 class SoilDataController extends Controller
 {
-    public function index()
+    public function index(ZoneAnalyticsService $analytics): View
     {
-        $chartData = [ /* ... data chart lu kemaren ... */ ];
-
-        // Ambil data tanaman aktif dari session (kalo ga ada, isinya bakal null)
-        $activePlant = session('activePlant');
-
-        return view('welcome', compact('chartData', 'activePlant'));
+        return view('welcome', $analytics->buildDashboardSummary());
     }
 
-    public function analyzeManual(Request $request)
+    public function history(ZoneAnalyticsService $analytics): View
     {
-        // Tembak API Python lu
-        $response = Http::post('http://127.0.0.1:5000/predict', [
-            'nitrogen' => $request->nitrogen,
-            'phosphorus' => $request->phosphorus,
-            'potassium' => $request->potassium,
-            'ph' => $request->ph
+        return view('history', [
+            'historicalData' => $analytics->zoneLedger(),
         ]);
-
-        // Tangkep format JSON dari Python lu
-        $aiRecommendations = $response->json();
-
-        // Lempar ke halaman rekomendasi
-        return view('recommendation', compact('aiRecommendations'));
     }
 
-    public function history()
+    public function zones(ZoneAnalyticsService $analytics): View
     {
-        // Mengambil semua data, diurutkan dari yang terbaru, dan tambahkan pagination
-        $historicalData = \App\Models\SoilData::orderBy('created_at', 'desc')->paginate(10);
-        
-        return view('history', compact('historicalData'));
+        return view('zones.index', [
+            'zones' => Zone::with('soilData')->get()->map(fn (Zone $zone) => $analytics->buildZoneCard($zone)),
+        ]);
     }
 
-    public function startPlanting(Request $request)
+    public function storeZone(Request $request): RedirectResponse
     {
-        // Tangkep ID/Nama tanaman dari tombol yang diklik
-        $cropId = $request->input('crop_id'); // Misal: 1 buat Tomat, 2 Jagung
+        $data = $this->validateZone($request);
 
-        // Simulasi data tanaman berdasarkan pilihan
-        $plantData = [];
-        if ($cropId == 1) {
-            $plantData = ['nama' => 'Tomat Sayur', 'estimasi_panen' => 83];
-        } elseif ($cropId == 2) {
-            $plantData = ['nama' => 'Jagung Manis', 'estimasi_panen' => 60];
-        } else {
-            $plantData = ['nama' => 'Cabai Merah', 'estimasi_panen' => 90];
+        $baseSlug = Str::slug($data['name']);
+        $slug = $baseSlug;
+        $counter = 2;
+
+        while (Zone::where('slug', $slug)->exists()) {
+            $slug = $baseSlug.'-'.$counter;
+            $counter++;
         }
 
-        // Siapin data lengkap buat disimpen di Session
-        $activePlant = [
-            'nama' => $plantData['nama'],
-            'tanggal_tanam' => now()->format('d M Y'),
-            'hari_ke' => 1,
-            'estimasi_panen' => $plantData['estimasi_panen'],
-            'progress' => 1 // Baru hari pertama
-        ];
+        $zone = Zone::create([
+            'name' => $data['name'],
+            'slug' => $slug,
+            'area_label' => $data['area_label'] ?: 'Blok baru',
+            'location_description' => $data['location_description'] ?: 'Belum ada deskripsi lokasi',
+            'sample_target_count' => $data['sample_target_count'] ?? 8,
+        ]);
 
-        // Simpan ke Session Laravel
-        session(['activePlant' => $activePlant]);
-
-        // Balikin ke Dashboard dengan pesan sukses
-        return redirect()->route('dashboard')->with('success', 'Berhasil memulai penanaman ' . $plantData['nama'] . '!');
+        return redirect()->route('zones.show', $zone)->with('success', 'Zona baru berhasil dibuat.');
     }
 
-    public function resetPlanting()
+    public function updateZone(Request $request, Zone $zone): RedirectResponse
     {
-        // Hapus data tanaman dari session (Buat simulasi "Selesai Panen")
-        session()->forget('activePlant');
-        return redirect()->route('dashboard')->with('success', 'Lahan berhasil di-reset. Siap untuk penanaman baru.');
+        $data = $this->validateZone($request);
+
+        $zone->update([
+            'name' => $data['name'],
+            'area_label' => $data['area_label'] ?: 'Blok baru',
+            'location_description' => $data['location_description'] ?: 'Belum ada deskripsi lokasi',
+            'sample_target_count' => $data['sample_target_count'] ?? 8,
+        ]);
+
+        return back()->with('success', 'Zona '.$zone->name.' berhasil diperbarui.');
     }
 
-    public function zones()
+    public function destroyZone(Zone $zone): RedirectResponse
     {
-        // Simulasi data perangkat IoT di berbagai zona
-        $iotDevices = [
+        $zoneName = $zone->name;
+        $zone->careAdvices()->delete();
+        $zone->soilData()->delete();
+        $zone->delete();
+
+        return redirect()->route('zones.index')->with('success', 'Zona '.$zoneName.' berhasil dihapus.');
+    }
+
+    public function showZone(Zone $zone, ZoneAnalyticsService $analytics, AiAdvisorService $advisor): View
+    {
+        $history = $analytics->lastHourHistory($zone);
+
+        if (filled($zone->active_crop) && $history->isNotEmpty()) {
+            $advisor->generateCareAdvice($zone, $history);
+            $zone->load('careAdvices');
+        }
+
+        return view('zones.show', $analytics->buildZoneDetail($zone));
+    }
+
+    public function monitorZone(Zone $zone, ZoneAnalyticsService $analytics, AiAdvisorService $advisor): View
+    {
+        $history = $analytics->lastHourHistory($zone);
+
+        if (filled($zone->active_crop) && $history->isNotEmpty()) {
+            $advisor->generateCareAdvice($zone, $history);
+            $zone->load('careAdvices');
+        }
+
+        return view('zones.monitor', [
+            'zone' => $zone,
+            'monitoring' => $analytics->buildMonitoringView($zone),
+        ]);
+    }
+
+    public function samplingForm(Zone $zone): RedirectResponse
+    {
+        return redirect()->route('zones.show', ['zone' => $zone, 'modal' => 'sampling-create-modal']);
+    }
+
+    public function storeSampling(Request $request, Zone $zone): RedirectResponse
+    {
+        $data = $request->validate([
+            'point_label' => ['required', 'array', 'min:1'],
+            'point_label.*' => ['required', 'string', 'max:60'],
+            'ph' => ['required', 'array'],
+            'ph.*' => ['required', 'numeric', 'between:0,14'],
+            'nitrogen' => ['required', 'array'],
+            'nitrogen.*' => ['required', 'numeric', 'min:0'],
+            'phosphorus' => ['required', 'array'],
+            'phosphorus.*' => ['required', 'numeric', 'min:0'],
+            'potassium' => ['required', 'array'],
+            'potassium.*' => ['required', 'numeric', 'min:0'],
+            'soil_moisture' => ['nullable', 'array'],
+            'soil_moisture.*' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'sampled_at' => ['nullable', 'date'],
+        ]);
+
+        foreach ($data['point_label'] as $index => $pointLabel) {
+            SoilData::create([
+                'zone_id' => $zone->id,
+                'source' => 'manual',
+                'point_label' => $pointLabel,
+                'nitrogen' => $data['nitrogen'][$index],
+                'phosphorus' => $data['phosphorus'][$index],
+                'potassium' => $data['potassium'][$index],
+                'ph' => $data['ph'][$index],
+                'soil_moisture' => $data['soil_moisture'][$index] ?? null,
+                'sampled_at' => $data['sampled_at'] ? now()->parse($data['sampled_at']) : now(),
+            ]);
+        }
+
+        $zone->update([
+            'status' => $zone->soilData()->count() >= $zone->sample_target_count ? 'siap_analisis' : 'butuh_sampling',
+        ]);
+
+        return redirect()->route('zones.show', $zone)->with('success', 'Data sampling zona berhasil disimpan.');
+    }
+
+    public function analyzeZone(Zone $zone, ZoneAnalyticsService $analytics, AiAdvisorService $advisor): View
+    {
+        $samples = $analytics->buildPredictionSamples($zone);
+
+        abort_if($samples->count() < 3, 422, 'Zona membutuhkan minimal 3 titik sampling sebelum dianalisis.');
+
+        $prediction = $advisor->predictZone($zone, $samples);
+
+        return view('recommendation', $prediction);
+    }
+
+    public function analyzeManual(Request $request, ZoneAnalyticsService $analytics, AiAdvisorService $advisor): View
+    {
+        $data = $request->validate([
+            'zone_name' => ['nullable', 'string', 'max:120'],
+            'ph' => ['required', 'numeric', 'between:0,14'],
+            'nitrogen' => ['required', 'numeric', 'min:0'],
+            'phosphorus' => ['required', 'numeric', 'min:0'],
+            'potassium' => ['required', 'numeric', 'min:0'],
+            'soil_moisture' => ['nullable', 'numeric', 'min:0', 'max:100'],
+        ]);
+
+        $zone = Zone::firstOrCreate(
+            ['slug' => 'zona-manual'],
             [
-                'zona' => 'Zona A (Utara)',
-                'mac_address' => 'ESP32-A8:4F:23',
-                'status' => 'Online',
-                'last_ping' => 'Barusan',
-                'tanaman' => 'Tomat Sayur'
-            ],
-            [
-                'zona' => 'Zona B (Selatan)',
-                'mac_address' => 'ESP32-B2:11:9C',
-                'status' => 'Offline',
-                'last_ping' => '2 Jam yang lalu',
-                'tanaman' => 'Belum ditanam'
-            ],
-            [
-                'zona' => 'Zona C (Timur)',
-                'mac_address' => 'Belum ada alat',
-                'status' => 'Menunggu Setup',
-                'last_ping' => '-',
-                'tanaman' => 'Belum ditanam'
+                'name' => $data['zone_name'] ?? 'Zona Manual',
+                'area_label' => 'Mode cepat',
+                'location_description' => 'Zona analisis cepat dari dashboard',
+                'sample_target_count' => 3,
             ]
-        ];
+        );
 
-        return view('zones', compact('iotDevices'));
+        SoilData::create([
+            'zone_id' => $zone->id,
+            'source' => 'manual',
+            'point_label' => 'Quick-'.now()->format('His'),
+            'nitrogen' => $data['nitrogen'],
+            'phosphorus' => $data['phosphorus'],
+            'potassium' => $data['potassium'],
+            'ph' => $data['ph'],
+            'soil_moisture' => $data['soil_moisture'] ?? null,
+            'sampled_at' => now(),
+        ]);
+
+        $samples = $analytics->buildPredictionSamples($zone);
+        $prediction = $advisor->predictZone($zone, $samples);
+
+        return view('recommendation', $prediction);
+    }
+
+    public function startPlanting(Request $request, Zone $zone): RedirectResponse
+    {
+        $data = $request->validate([
+            'crop_name' => ['required', 'string', 'max:120'],
+        ]);
+
+        $zone->update([
+            'active_crop' => $data['crop_name'],
+            'status' => 'sedang_ditanam',
+        ]);
+
+        return redirect()->route('zones.show', $zone)->with('success', 'Tanaman aktif untuk '.$zone->name.' diperbarui ke '.$data['crop_name'].'.');
+    }
+
+    public function resetPlanting(Zone $zone): RedirectResponse
+    {
+        $zone->update([
+            'active_crop' => null,
+            'status' => $zone->soilData()->count() >= $zone->sample_target_count ? 'siap_analisis' : 'butuh_sampling',
+        ]);
+
+        return redirect()->route('zones.show', $zone)->with('success', 'Tanaman aktif pada '.$zone->name.' berhasil dihapus.');
+    }
+
+    public function refreshCareAdvice(Zone $zone, ZoneAnalyticsService $analytics, AiAdvisorService $advisor): RedirectResponse
+    {
+        $history = $analytics->lastHourHistory($zone);
+        $advisor->generateCareAdvice($zone, $history, true);
+
+        return back()->with('success', 'Adaptive advice berhasil diperbarui untuk '.$zone->name.'.');
+    }
+
+    protected function validateZone(Request $request): array
+    {
+        return $request->validate([
+            'name' => ['required', 'string', 'max:120'],
+            'area_label' => ['nullable', 'string', 'max:120'],
+            'location_description' => ['nullable', 'string', 'max:160'],
+            'sample_target_count' => ['nullable', 'integer', 'min:3', 'max:24'],
+        ]);
     }
 }

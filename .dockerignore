@@ -1,0 +1,15 @@
+.git
+.gitignore
+.env
+.venv
+node_modules
+vendor
+storage/logs
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+public/build
+public/hot
+catboost_info
+.pytest_cache
+__pycache__

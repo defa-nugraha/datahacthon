@@ -1,92 +1,280 @@
 @extends('layouts.app')
 
-@section('title', 'Dashboard - Agro Smart')
+@section('title', 'Dashboard - Vera AI')
 
 @section('content')
-
-    <div class="max-w-6xl mx-auto">
-        <h1 class="text-3xl font-bold text-green-700 mb-8">Dashboard Precision Agriculture</h1>
-
-        @if(session('success'))
-            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4 shadow-sm">
-                {{ session('success') }}
+    <div class="mx-auto max-w-7xl space-y-6">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+                <p class="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">Operations Overview</p>
+                <h1 class="mt-2 text-4xl font-extrabold tracking-tight text-slate-900">Pemantauan zona dan rekomendasi AI</h1>
+                <p class="mt-2 max-w-3xl text-base text-slate-600">
+                    Pantau sampling terbaru, status telemetri, dan hasil rekomendasi vegetasi berbasis zona secara real-time.
+                </p>
             </div>
-        @endif
-
-        @if(isset($activePlant) && $activePlant != null)
-            
-            <div class="w-full bg-gradient-to-r from-green-600 to-green-800 rounded-2xl shadow-lg p-6 mb-8 text-white relative overflow-hidden">
-                <div class="relative z-10 flex flex-col md:flex-row justify-between items-center gap-6">
-                    <div class="flex items-center gap-6 w-full md:w-1/2">
-                        <div class="bg-white/20 p-4 rounded-xl text-4xl">🍅</div>
-                        <div>
-                            <span class="text-green-200 text-sm font-bold tracking-wider uppercase">Fase Vegetatif</span>
-                            <h2 class="text-3xl font-black mt-1">{{ $activePlant['nama'] }} (Zona A)</h2>
-                            <p class="text-green-100 mt-1">Ditanam pada: {{ $activePlant['tanggal_tanam'] }}</p>
-                        </div>
-                    </div>
-                    <div class="w-full md:w-1/2 bg-black/20 rounded-xl p-4">
-                        <div class="flex justify-between text-sm font-bold mb-2">
-                            <span>Hari ke-{{ $activePlant['hari_ke'] }}</span>
-                            <span class="text-green-300">Estimasi Panen: {{ $activePlant['estimasi_panen'] }} Hari Lagi</span>
-                        </div>
-                        <div class="w-full bg-black/30 rounded-full h-3 mb-2">
-                            <div class="bg-green-400 h-3 rounded-full" style="width: {{ $activePlant['progress'] }}%"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <form action="{{ route('plant.reset') }}" method="POST" class="mb-8">
-                @csrf
-                <button type="submit" class="text-red-500 hover:text-red-700 text-sm font-bold underline">
-                    Akhiri Masa Tanam (Reset Lahan)
-                </button>
-            </form>
-
-        @else
-            
-            <div class="w-full bg-white p-6 rounded-lg shadow-md border-t-4 border-green-500 mb-8">
-                <div class="flex justify-between items-center mb-6 border-b pb-4">
-                    <h2 class="text-xl font-bold text-gray-800">Monitoring Lahan (Real-time IoT)</h2>
-                    <span class="text-sm font-semibold text-green-700 bg-green-50 px-3 py-1 rounded-full">● Sensor Aktif</span>
-                </div>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                    <div class="bg-gray-50 rounded-lg p-4 text-center border border-gray-100"><p class="text-sm text-gray-500">Nitrogen</p><p class="text-2xl font-bold text-blue-600">42</p></div>
-                    <div class="bg-gray-50 rounded-lg p-4 text-center border border-gray-100"><p class="text-sm text-gray-500">Fosfor</p><p class="text-2xl font-bold text-blue-600">15</p></div>
-                    <div class="bg-gray-50 rounded-lg p-4 text-center border border-gray-100"><p class="text-sm text-gray-500">Kalium</p><p class="text-2xl font-bold text-blue-600">120</p></div>
-                    <div class="bg-gray-50 rounded-lg p-4 text-center border border-gray-100"><p class="text-sm text-gray-500">pH</p><p class="text-2xl font-bold text-blue-600">6.2</p></div>
-                </div>
-            </div>
-
-            <div class="w-full bg-white p-6 rounded-lg shadow-md mb-8">
-                <h2 class="text-xl font-semibold mb-4 border-b pb-2">Input Manual Unsur Hara</h2>
-                <form action="{{ route('analyze.manual') }}" method="POST" class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    @csrf
-                    <div><label class="text-sm font-bold">Nitrogen (N)</label><input type="number" name="nitrogen" class="w-full border rounded p-2" required></div>
-                    <div><label class="text-sm font-bold">Fosfor (P)</label><input type="number" name="phosphorus" class="w-full border rounded p-2" required></div>
-                    <div><label class="text-sm font-bold">Kalium (K)</label><input type="number" name="potassium" class="w-full border rounded p-2" required></div>
-                    <div><label class="text-sm font-bold">pH Tanah</label><input type="number" step="0.1" name="ph" class="w-full border rounded p-2" required></div>
-                    <div class="md:col-span-4 mt-2">
-                        <button type="submit" class="bg-green-600 text-white font-bold py-2 px-4 rounded w-full md:w-auto">Cek Rekomendasi AI</button>
-                    </div>
-                </form>
-            </div>
-
-        @endif
-
-        <div class="w-full bg-white p-6 rounded-lg shadow-md mb-8">
-            <h2 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">Tren Kualitas Tanah (7 Hari)</h2>
-            <div class="relative h-80 w-full">
-                <canvas id="soilChart"></canvas>
+            <div class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-800">
+                <span class="inline-block h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
+                <span>System Online</span>
             </div>
         </div>
 
+        <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <div class="rounded-3xl border border-outline bg-surface p-6 shadow-panel">
+                <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-surface-soft text-slate-600">
+                    <span class="material-symbols-outlined">layers</span>
+                </div>
+                <div class="text-4xl font-extrabold tracking-tight">{{ $stats['total_zones'] }}</div>
+                <div class="mt-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Total Zones</div>
+            </div>
+            <div class="rounded-3xl border border-outline bg-surface p-6 shadow-panel">
+                <div class="mb-4 flex items-start justify-between">
+                    <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-soft text-primary">
+                        <span class="material-symbols-outlined">eco</span>
+                    </div>
+                    <span class="rounded-full bg-primary-soft px-3 py-1 text-xs font-semibold text-primary">Ready {{ $stats['ready_zones'] }}</span>
+                </div>
+                <div class="text-4xl font-extrabold tracking-tight">{{ $stats['active_zones'] }}</div>
+                <div class="mt-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Active Zones</div>
+            </div>
+            <div class="rounded-3xl border border-outline bg-surface p-6 shadow-panel">
+                <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-50 text-accent">
+                    <span class="material-symbols-outlined">science</span>
+                </div>
+                <div class="text-4xl font-extrabold tracking-tight">{{ $stats['latest_samples'] }}</div>
+                <div class="mt-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Latest Samples / 24h</div>
+            </div>
+            <div class="rounded-3xl border border-primary/10 bg-primary p-6 text-white shadow-panel">
+                <div class="mb-4 flex items-start justify-between">
+                    <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10">
+                        <span class="material-symbols-outlined">psychology</span>
+                    </div>
+                    <span class="inline-block h-2.5 w-2.5 rounded-full bg-emerald-300"></span>
+                </div>
+                <div class="text-4xl font-extrabold tracking-tight">{{ $stats['new_ai_recommendations'] }}</div>
+                <div class="mt-1 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-100">Zones With AI Recs</div>
+            </div>
+        </div>
+
+        <div class="grid gap-6 xl:grid-cols-[2fr,1fr]">
+            <section class="rounded-3xl border border-outline bg-surface p-6 shadow-panel">
+                <div class="mb-5 flex items-start justify-between gap-3">
+                    <div>
+                        <h2 class="text-2xl font-bold tracking-tight text-slate-900">Soil Trend: NPK Average</h2>
+                        <p class="text-sm text-slate-500">Rata-rata 7 hari terakhir untuk seluruh zona aktif.</p>
+                    </div>
+                    <div class="inline-flex items-center gap-2 text-sm text-slate-500">
+                        <span class="inline-block h-2.5 w-2.5 rounded-full bg-primary"></span>
+                        Current
+                    </div>
+                </div>
+                <div class="h-80">
+                    <canvas id="dashboardTrendChart"></canvas>
+                </div>
+            </section>
+
+            <div class="space-y-6">
+                <section class="rounded-3xl border border-outline bg-surface p-6 shadow-panel">
+                    <h2 class="text-2xl font-bold tracking-tight text-slate-900">Telemetry Status</h2>
+                    <div class="mt-6 flex items-center gap-6">
+                        <div class="flex h-28 w-28 items-center justify-center rounded-full border-[10px] border-primary text-3xl font-extrabold text-primary">
+                            {{ $telemetry['sensor_percentage'] }}%
+                        </div>
+                        <div class="space-y-3 text-sm">
+                            <div class="flex items-center gap-3">
+                                <span class="inline-block h-3 w-3 rounded-full bg-primary"></span>
+                                <div>
+                                    <div class="font-semibold text-slate-900">Sensor Aktif</div>
+                                    <div class="text-slate-500">{{ $telemetry['sensor_percentage'] }}% dari zona</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <span class="inline-block h-3 w-3 rounded-full bg-slate-300"></span>
+                                <div>
+                                    <div class="font-semibold text-slate-900">Input Manual</div>
+                                    <div class="text-slate-500">{{ $telemetry['manual_percentage'] }}% dari zona</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <a href="{{ route('zones.index') }}" class="rounded-3xl bg-primary px-6 py-6 text-white shadow-panel transition hover:bg-success">
+                        <div class="flex items-center gap-3">
+                            <span class="material-symbols-outlined">science</span>
+                            <span class="text-lg font-bold">Start Analysis</span>
+                        </div>
+                        <p class="mt-2 text-sm text-emerald-50">Lanjut ke input sampling atau analisis per zona.</p>
+                    </a>
+                    <a href="{{ route('zones.index') }}" class="rounded-3xl border border-outline bg-surface px-6 py-6 shadow-panel transition hover:border-primary/30">
+                        <div class="flex items-center gap-3 text-primary">
+                            <span class="material-symbols-outlined">add_location_alt</span>
+                            <span class="text-lg font-bold">Add Zone</span>
+                        </div>
+                        <p class="mt-2 text-sm text-slate-500">Daftarkan zona baru dan tentukan target jumlah sampling.</p>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <section class="rounded-3xl border border-outline bg-surface p-6 shadow-panel">
+            <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <div>
+                    <h2 class="text-2xl font-bold tracking-tight text-slate-900">Field Zones</h2>
+                    <p class="text-sm text-slate-500">Ringkasan status untuk setiap zona aktif.</p>
+                </div>
+                <a href="{{ route('zones.index') }}" class="text-sm font-semibold text-primary hover:text-success">Lihat semua zona</a>
+            </div>
+
+            @if (collect($zones)->isEmpty())
+                <div class="mt-6 rounded-2xl border border-dashed border-outline bg-surface-soft px-6 py-10 text-center text-slate-500">
+                    Belum ada zona. Tambahkan zona pertama untuk memulai alur sampling dan analisis AI.
+                </div>
+            @else
+                <div class="mt-6 grid gap-4 lg:grid-cols-3">
+                    @foreach ($zones as $zone)
+                        @php
+                            $statusClass = match($zone['status']['tone']) {
+                                'green' => 'bg-emerald-100 text-emerald-800',
+                                'blue' => 'bg-sky-100 text-sky-800',
+                                default => 'bg-amber-100 text-amber-800',
+                            };
+                        @endphp
+                        <div class="rounded-3xl border border-outline bg-surface-soft p-5">
+                            <div class="flex items-start justify-between gap-3">
+                                <div>
+                                    <h3 class="text-2xl font-bold tracking-tight text-slate-900">{{ $zone['name'] }}</h3>
+                                    <p class="mt-1 text-sm text-slate-500">{{ $zone['area_label'] }}</p>
+                                </div>
+                                <span class="rounded-full px-3 py-1 text-xs font-semibold {{ $statusClass }}">
+                                    {{ $zone['status']['label'] }}
+                                </span>
+                            </div>
+                            <div class="mt-5 grid grid-cols-2 gap-3">
+                                <div class="rounded-2xl bg-white px-4 py-3 border border-outline">
+                                    <div class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Sampling</div>
+                                    <div class="mt-2 text-lg font-bold text-slate-900">{{ $zone['sample_count'] }} titik</div>
+                                </div>
+                                <div class="rounded-2xl bg-white px-4 py-3 border border-outline">
+                                    <div class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Rekomendasi</div>
+                                    <div class="mt-2 text-lg font-bold text-primary">{{ $zone['latest_recommendation_label'] ?? 'Belum ada' }}</div>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex items-center gap-2 text-sm text-slate-500">
+                                <span class="material-symbols-outlined text-base text-primary">grass</span>
+                                <span>{{ $zone['active_crop'] ?: 'Belum ada tanaman aktif' }}</span>
+                            </div>
+                            <div class="mt-5 flex gap-3">
+                                <a href="{{ route('zones.show', $zone['id']) }}" class="flex-1 rounded-2xl border border-outline px-4 py-3 text-center text-sm font-semibold text-primary transition hover:border-primary hover:bg-primary-soft">
+                                    View Detail
+                                </a>
+                                <a href="{{ route('zones.monitor', $zone['id']) }}" class="rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-white transition hover:bg-success">
+                                    Live
+                                </a>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </section>
+
+        <section class="rounded-3xl border border-outline bg-surface p-6 shadow-panel">
+            <div class="flex items-center justify-between gap-3">
+                <div>
+                    <h2 class="text-2xl font-bold tracking-tight text-slate-900">Recent Activity</h2>
+                    <p class="text-sm text-slate-500">Update sampling dan analisis terbaru di seluruh zona.</p>
+                </div>
+                <a href="{{ route('history') }}" class="text-sm font-semibold text-primary hover:text-success">View all log</a>
+            </div>
+            <div class="mt-5 divide-y divide-outline">
+                @forelse ($recent_activity as $activity)
+                    <div class="flex flex-col gap-3 py-4 md:flex-row md:items-start md:justify-between">
+                        <div class="flex gap-4">
+                            <div class="mt-1 flex h-10 w-10 items-center justify-center rounded-full bg-primary-soft text-primary">
+                                <span class="material-symbols-outlined text-[20px]">check</span>
+                            </div>
+                            <div>
+                                <div class="font-semibold text-slate-900">{{ $activity['title'] }}</div>
+                                <div class="mt-1 text-sm text-slate-500">{{ $activity['description'] }}</div>
+                            </div>
+                        </div>
+                        <div class="text-sm text-slate-400">{{ $activity['time'] }}</div>
+                    </div>
+                @empty
+                    <div class="py-8 text-center text-slate-500">Belum ada aktivitas terbaru.</div>
+                @endforelse
+            </div>
+        </section>
     </div>
-
-    <script>
-        window.soilData = @json($chartData ?? []);
-    </script>
-    <script src="{{ asset('js/dashboard-chart.js') }}"></script>
-
 @endsection
+
+@push('scripts')
+    <script>
+        const trendChartData = @json($trend_chart);
+        const dashboardTrendCtx = document.getElementById('dashboardTrendChart');
+
+        if (dashboardTrendCtx) {
+            new Chart(dashboardTrendCtx, {
+                type: 'line',
+                data: {
+                    labels: trendChartData.labels,
+                    datasets: [
+                        {
+                            label: 'Nitrogen',
+                            data: trendChartData.nitrogen,
+                            borderColor: '#154212',
+                            backgroundColor: '#154212',
+                            tension: 0.35
+                        },
+                        {
+                            label: 'Fosfor',
+                            data: trendChartData.phosphorus,
+                            borderColor: '#0b4f7d',
+                            backgroundColor: '#0b4f7d',
+                            tension: 0.35
+                        },
+                        {
+                            label: 'Kalium',
+                            data: trendChartData.potassium,
+                            borderColor: '#5e5e5c',
+                            backgroundColor: '#5e5e5c',
+                            tension: 0.35
+                        },
+                        {
+                            label: 'pH',
+                            data: trendChartData.ph,
+                            borderColor: '#a15c00',
+                            backgroundColor: '#a15c00',
+                            borderDash: [6, 6],
+                            yAxisID: 'y1',
+                            tension: 0.35
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { position: 'top', align: 'end' }
+                    },
+                    scales: {
+                        y: {
+                            grid: { color: '#ecece4' },
+                            ticks: { color: '#64748b' }
+                        },
+                        y1: {
+                            position: 'right',
+                            grid: { drawOnChartArea: false },
+                            ticks: { color: '#a15c00' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#64748b' }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+@endpush

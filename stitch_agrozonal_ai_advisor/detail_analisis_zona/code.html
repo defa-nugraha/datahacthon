@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Zone Detail - Vera Intelligence</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "tertiary-fixed": "#cde5ff",
+                        "outline-variant": "#c2c9bb",
+                        "surface-container-low": "#f4f4ee",
+                        "surface-variant": "#e3e3de",
+                        "on-tertiary-fixed": "#001d32",
+                        "secondary-fixed": "#e4e2de",
+                        "on-secondary-fixed-variant": "#474744",
+                        "outline": "#72796e",
+                        "surface-bright": "#fafaf4",
+                        "primary-fixed-dim": "#a1d494",
+                        "surface-container-highest": "#e3e3de",
+                        "secondary-fixed-dim": "#c8c6c3",
+                        "on-primary-fixed-variant": "#23501e",
+                        "on-primary-fixed": "#002201",
+                        "error-container": "#ffdad6",
+                        "surface": "#fafaf4",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary": "#5e5e5c",
+                        "on-tertiary-fixed-variant": "#004b74",
+                        "on-background": "#1a1c19",
+                        "inverse-primary": "#a1d494",
+                        "secondary-container": "#e1dfdc",
+                        "on-secondary-container": "#636360",
+                        "on-primary-container": "#9dd090",
+                        "surface-container-high": "#e8e8e3",
+                        "on-error-container": "#93000a",
+                        "on-primary": "#ffffff",
+                        "on-secondary-fixed": "#1b1c1a",
+                        "primary": "#154212",
+                        "on-surface": "#1a1c19",
+                        "surface-dim": "#dadad5",
+                        "primary-container": "#2d5a27",
+                        "inverse-on-surface": "#f1f1ec",
+                        "on-surface-variant": "#42493e",
+                        "on-tertiary-container": "#8bc8ff",
+                        "surface-tint": "#3b6934",
+                        "primary-fixed": "#bcf0ae",
+                        "inverse-surface": "#2f312e",
+                        "tertiary": "#003c5f",
+                        "on-error": "#ffffff",
+                        "surface-container": "#eeeee9",
+                        "error": "#ba1a1a",
+                        "tertiary-fixed-dim": "#94ccff",
+                        "background": "#fafaf4",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "tertiary-container": "#005482"
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.125rem",
+                        lg: "0.25rem",
+                        xl: "0.5rem",
+                        full: "0.75rem"
+                    },
+                    spacing: {
+                        gutter: "24px",
+                        margin: "32px",
+                        xs: "4px",
+                        base: "8px",
+                        sm: "12px",
+                        md: "24px",
+                        lg: "48px",
+                        xl: "80px"
+                    },
+                    fontFamily: {
+                        "body-lg": ["Inter"],
+                        "label-caps": ["Inter"],
+                        "h2": ["Inter"],
+                        "h3": ["Inter"],
+                        "h1": ["Inter"],
+                        "tabular-nums": ["Inter"],
+                        "body-md": ["Inter"],
+                        "body-sm": ["Inter"]
+                    },
+                    fontSize: {
+                        "body-lg": ["18px", { lineHeight: "1.6", fontWeight: "400" }],
+                        "label-caps": ["12px", { lineHeight: "1", letterSpacing: "0.05em", fontWeight: "700" }],
+                        "h2": ["32px", { lineHeight: "1.25", letterSpacing: "-0.01em", fontWeight: "600" }],
+                        "h3": ["24px", { lineHeight: "1.3", fontWeight: "600" }],
+                        "h1": ["40px", { lineHeight: "1.2", letterSpacing: "-0.02em", fontWeight: "700" }],
+                        "tabular-nums": ["16px", { lineHeight: "1", fontWeight: "500" }],
+                        "body-md": ["16px", { lineHeight: "1.5", fontWeight: "400" }],
+                        "body-sm": ["14px", { lineHeight: "1.5", fontWeight: "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .icon-fill {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Grid background pattern for charts */
+        .bg-grid-pattern {
+            background-size: 20px 20px;
+            background-image: radial-gradient(circle, #e3e3de 1px, transparent 1px);
+        }
+    </style>
+</head>
+<body class="bg-background font-body-md text-on-background antialiased flex">
+<!-- SideNavBar (Shared Component JSON) -->
+<nav class="hidden md:flex fixed left-0 top-0 h-full w-64 flex-col z-50 bg-surface-container-lowest border-r border-outline-variant font-body-md">
+<!-- Header -->
+<div class="px-6 py-8 flex items-center gap-4 border-b border-outline-variant/50">
+<div class="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-on-primary-container icon-fill">spa</span>
+</div>
+<div>
+<h2 class="text-xl font-bold text-primary tracking-tight">Vera AI</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Precision Vegetation</p>
+</div>
+</div>
+<!-- Main Tabs -->
+<div class="flex-1 py-6 flex flex-col gap-2">
+<a class="flex items-center gap-3 px-6 py-3 mx-2 rounded-lg font-tabular-nums text-tabular-nums text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-colors duration-150" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span>Dashboard</span>
+</a>
+<!-- Active Tab: Field Zones (Mapped to Zone Detail intent) -->
+<a class="flex items-center gap-3 px-6 py-3 mx-2 rounded-lg font-tabular-nums text-tabular-nums bg-surface-container text-primary border-l-4 border-primary shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)]" href="#">
+<span class="material-symbols-outlined icon-fill">potted_plant</span>
+<span>Field Zones</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-3 mx-2 rounded-lg font-tabular-nums text-tabular-nums text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-colors duration-150" href="#">
+<span class="material-symbols-outlined">science</span>
+<span>Soil Lab</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-3 mx-2 rounded-lg font-tabular-nums text-tabular-nums text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-colors duration-150" href="#">
+<span class="material-symbols-outlined">psychology</span>
+<span>AI Advisor</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-3 mx-2 rounded-lg font-tabular-nums text-tabular-nums text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-colors duration-150" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span>Reports</span>
+</a>
+</div>
+<!-- CTA -->
+<div class="px-6 py-4">
+<button class="w-full bg-surface-container-highest hover:bg-surface-variant text-on-surface border border-outline-variant rounded-lg py-3 flex items-center justify-center gap-2 transition-colors font-tabular-nums text-tabular-nums shadow-sm">
+<span class="material-symbols-outlined text-[18px]">add</span>
+                Run New Analysis
+            </button>
+</div>
+<!-- Footer Tabs -->
+<div class="border-t border-outline-variant/50 py-4 flex flex-col gap-1">
+<a class="flex items-center gap-3 px-6 py-2 mx-2 rounded-lg font-body-sm text-body-sm text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+<span>Settings</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-2 mx-2 rounded-lg font-body-sm text-body-sm text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-[20px]">contact_support</span>
+<span>Support</span>
+</a>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<div class="flex-1 md:ml-64 min-h-screen flex flex-col">
+<!-- TopAppBar (Shared Component JSON) -->
+<header class="flex justify-between items-center w-full px-6 py-3 sticky top-0 z-40 bg-surface-container-lowest/90 backdrop-blur-md border-b border-outline-variant/60 shadow-sm font-body-lg text-body-lg">
+<!-- Left: Brand (Mobile) or Search (Desktop logic implied left) -->
+<div class="flex items-center gap-4">
+<h1 class="text-lg font-black tracking-tighter text-primary md:hidden">Vera Intelligence</h1>
+<div class="hidden md:flex items-center bg-surface-container-low border border-outline-variant/50 rounded-full px-4 py-2 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-on-surface font-body-sm text-body-sm ml-2 w-64 placeholder:text-on-surface-variant/70" placeholder="Search..." type="text"/>
+</div>
+</div>
+<!-- Right: Actions -->
+<div class="flex items-center gap-2">
+<button class="p-2 rounded-full text-on-surface-variant hover:bg-surface-container hover:text-primary transition-all duration-200 active:scale-95">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 rounded-full text-on-surface-variant hover:bg-surface-container hover:text-primary transition-all duration-200 active:scale-95 hidden sm:block">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<button class="p-2 rounded-full text-on-surface-variant hover:bg-surface-container hover:text-primary transition-all duration-200 active:scale-95 hidden sm:block">
+<span class="material-symbols-outlined">help</span>
+</button>
+<div class="ml-4 pl-4 border-l border-outline-variant h-8 flex items-center">
+<img alt="User profile" class="w-8 h-8 rounded-full border border-outline-variant/50 object-cover" data-alt="Close up portrait of a professional agronomist outdoors with a soft blurred natural background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC97Hmloq45g3Oi-qPKkoXx9RuejOnC5VaNFOhh7l1TcwSmvkBnLslMeaxEsYdW77HiqI8vpUs9NEhYp_8muDR94VREzESMGRZ6WGP1GRKygEbqwvzaSrCUAmZzMYLJYH-WlCR0AONLqI483og2iHIMI0xk0YnZOqp751jUPKO-wPj8HGm9VYARuDF1QQKWS0RcZRAVL-7OTAhivUYtR9Jgd48FOosiQjTSfkrUeLxNagVymH42P2AGUm97QQXYy_44HqqfJ7klbFS6"/>
+</div>
+</div>
+</header>
+<!-- Page Content -->
+<main class="flex-1 p-gutter lg:p-margin w-full max-w-[1440px] mx-auto flex flex-col gap-8">
+<!-- Page Header -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div>
+<div class="flex items-center gap-2 mb-2">
+<span class="font-label-caps text-label-caps text-on-surface-variant tracking-wider uppercase">Field Zones</span>
+<span class="text-outline-variant material-symbols-outlined text-[16px]">chevron_right</span>
+<span class="font-label-caps text-label-caps text-primary tracking-wider uppercase">Detail</span>
+</div>
+<h1 class="font-h1 text-h1 text-on-surface mb-2">Zona Selatan</h1>
+<div class="flex flex-wrap items-center gap-x-6 gap-y-2 font-body-md text-body-md text-on-surface-variant">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">location_on</span>
+<span>Blok B, Sektor 4</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">update</span>
+<span>Last Updated: Hari ini, 08:30 WIB</span>
+</div>
+</div>
+</div>
+<button class="bg-primary hover:bg-primary-container text-on-primary font-tabular-nums text-tabular-nums px-6 py-3 rounded-xl shadow-sm flex items-center justify-center gap-2 transition-all active:scale-95 whitespace-nowrap">
+<span class="material-symbols-outlined icon-fill">psychology</span>
+                    Jalankan Analisis AI
+                </button>
+</div>
+<!-- Data Quality Warning -->
+<div class="bg-surface-container text-on-surface border border-outline-variant rounded-xl p-4 flex items-start gap-3 shadow-sm">
+<span class="material-symbols-outlined text-tertiary mt-0.5 icon-fill">info</span>
+<div>
+<p class="font-tabular-nums text-tabular-nums font-medium text-on-surface">Data Quality Notice</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Tingkatkan akurasi dengan menambah 2 titik sampling lagi.</p>
+</div>
+<button class="ml-auto text-primary font-label-caps text-label-caps hover:underline mt-1">View Details</button>
+</div>
+<!-- Aggregated Metrics (Bento Row 1) -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Metric 1: Mean pH -->
+<div class="bg-surface-container-lowest border border-outline/10 rounded-2xl p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)] relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-full -z-10 group-hover:scale-110 transition-transform"></div>
+<div class="flex justify-between items-start mb-4">
+<h3 class="font-label-caps text-label-caps text-on-surface-variant uppercase">Mean pH</h3>
+<div class="bg-primary/10 text-primary p-2 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">water_drop</span>
+</div>
+</div>
+<div class="flex items-baseline gap-3">
+<span class="font-h1 text-h1 text-on-surface">6.4</span>
+<span class="font-body-sm text-body-sm text-primary flex items-center bg-primary/10 px-2 py-0.5 rounded">
+<span class="material-symbols-outlined text-[14px] mr-1">check_circle</span> Optimal
+                        </span>
+</div>
+<div class="mt-4 w-full bg-surface-variant h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 64%"></div>
+</div>
+</div>
+<!-- Metric 2: Mean NPK -->
+<div class="bg-surface-container-lowest border border-outline/10 rounded-2xl p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)] relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-32 h-32 bg-tertiary/5 rounded-bl-full -z-10 group-hover:scale-110 transition-transform"></div>
+<div class="flex justify-between items-start mb-4">
+<h3 class="font-label-caps text-label-caps text-on-surface-variant uppercase">Mean NPK (mg/kg)</h3>
+<div class="bg-tertiary/10 text-tertiary p-2 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">science</span>
+</div>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="font-h2 text-h2 text-on-surface">110</span><span class="text-on-surface-variant font-body-sm">N</span>
+<span class="text-outline-variant font-body-sm px-1">/</span>
+<span class="font-h2 text-h2 text-on-surface">45</span><span class="text-on-surface-variant font-body-sm">P</span>
+<span class="text-outline-variant font-body-sm px-1">/</span>
+<span class="font-h2 text-h2 text-on-surface">85</span><span class="text-on-surface-variant font-body-sm">K</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-2 flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-tertiary">trending_up</span> Slightly below target P
+                    </p>
+</div>
+<!-- Metric 3: Soil Moisture -->
+<div class="bg-surface-container-lowest border border-outline/10 rounded-2xl p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)] relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-32 h-32 bg-secondary/5 rounded-bl-full -z-10 group-hover:scale-110 transition-transform"></div>
+<div class="flex justify-between items-start mb-4">
+<h3 class="font-label-caps text-label-caps text-on-surface-variant uppercase">Soil Moisture</h3>
+<div class="bg-secondary-container text-on-secondary-container p-2 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">waves</span>
+</div>
+</div>
+<div class="flex items-baseline gap-3">
+<span class="font-h1 text-h1 text-on-surface">42%</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant flex items-center">
+                            -3% from yesterday
+                        </span>
+</div>
+<!-- Micro sparkline mockup -->
+<div class="mt-4 h-8 flex items-end gap-1 opacity-60">
+<div class="w-full bg-secondary-fixed rounded-t-sm h-[60%]"></div>
+<div class="w-full bg-secondary-fixed rounded-t-sm h-[70%]"></div>
+<div class="w-full bg-secondary-fixed rounded-t-sm h-[65%]"></div>
+<div class="w-full bg-secondary-fixed rounded-t-sm h-[80%]"></div>
+<div class="w-full bg-secondary-fixed rounded-t-sm h-[75%]"></div>
+<div class="w-full bg-primary rounded-t-sm h-[42%]"></div>
+</div>
+</div>
+</div>
+<!-- Main Bento Grid (Row 2) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+<!-- Left: Sample Points (Span 8) -->
+<div class="lg:col-span-8 bg-surface-container-lowest border border-outline/10 rounded-2xl p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)] flex flex-col">
+<div class="flex justify-between items-center mb-6">
+<h2 class="font-h3 text-h3 text-on-surface">Sample Points Data</h2>
+<button class="text-primary font-tabular-nums text-tabular-nums text-sm hover:underline flex items-center gap-1">
+<span class="material-symbols-outlined text-[18px]">download</span> Export CSV
+                        </button>
+</div>
+<!-- Density Grid for Points -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 flex-1">
+<!-- Point Item -->
+<div class="bg-surface border border-outline-variant/60 hover:border-primary/50 transition-colors rounded-xl p-4 flex flex-col justify-between">
+<div class="flex justify-between items-center mb-3">
+<span class="font-label-caps text-label-caps bg-surface-container-highest px-2 py-1 rounded text-on-surface">PT-01</span>
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between border-b border-outline-variant/30 pb-1">
+<span class="font-body-sm text-body-sm text-on-surface-variant">pH</span>
+<span class="font-tabular-nums text-tabular-nums text-on-surface font-medium">6.5</span>
+</div>
+<div class="flex justify-between">
+<span class="font-body-sm text-body-sm text-on-surface-variant">NPK</span>
+<span class="font-tabular-nums text-tabular-nums text-on-surface font-medium text-xs">112/48/88</span>
+</div>
+</div>
+</div>
+<!-- Point Item -->
+<div class="bg-surface border border-outline-variant/60 hover:border-primary/50 transition-colors rounded-xl p-4 flex flex-col justify-between">
+<div class="flex justify-between items-center mb-3">
+<span class="font-label-caps text-label-caps bg-surface-container-highest px-2 py-1 rounded text-on-surface">PT-02</span>
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between border-b border-outline-variant/30 pb-1">
+<span class="font-body-sm text-body-sm text-on-surface-variant">pH</span>
+<span class="font-tabular-nums text-tabular-nums text-on-surface font-medium">6.3</span>
+</div>
+<div class="flex justify-between">
+<span class="font-body-sm text-body-sm text-on-surface-variant">NPK</span>
+<span class="font-tabular-nums text-tabular-nums text-on-surface font-medium text-xs">108/42/82</span>
+</div>
+</div>
+</div>
+<!-- Point Item -->
+<div class="bg-surface border border-outline-variant/60 hover:border-primary/50 transition-colors rounded-xl p-4 flex flex-col justify-between">
+<div class="flex justify-between items-center mb-3">
+<span class="font-label-caps text-label-caps bg-surface-container-highest px-2 py-1 rounded text-on-surface">PT-03</span>
+<span class="w-2 h-2 rounded-full bg-error"></span>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between border-b border-outline-variant/30 pb-1">
+<span class="font-body-sm text-body-sm text-on-surface-variant">pH</span>
+<span class="font-tabular-nums text-tabular-nums text-error font-medium">5.8</span>
+</div>
+<div class="flex justify-between">
+<span class="font-body-sm text-body-sm text-on-surface-variant">NPK</span>
+<span class="font-tabular-nums text-tabular-nums text-on-surface font-medium text-xs">95/38/70</span>
+</div>
+</div>
+</div>
+<!-- Point Item -->
+<div class="bg-surface border border-outline-variant/60 hover:border-primary/50 transition-colors rounded-xl p-4 flex flex-col justify-between">
+<div class="flex justify-between items-center mb-3">
+<span class="font-label-caps text-label-caps bg-surface-container-highest px-2 py-1 rounded text-on-surface">PT-04</span>
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between border-b border-outline-variant/30 pb-1">
+<span class="font-body-sm text-body-sm text-on-surface-variant">pH</span>
+<span class="font-tabular-nums text-tabular-nums text-on-surface font-medium">6.6</span>
+</div>
+<div class="flex justify-between">
+<span class="font-body-sm text-body-sm text-on-surface-variant">NPK</span>
+<span class="font-tabular-nums text-tabular-nums text-on-surface font-medium text-xs">115/50/90</span>
+</div>
+</div>
+</div>
+<!-- Point Item -->
+<div class="bg-surface border border-outline-variant/60 hover:border-primary/50 transition-colors rounded-xl p-4 flex flex-col justify-between">
+<div class="flex justify-between items-center mb-3">
+<span class="font-label-caps text-label-caps bg-surface-container-highest px-2 py-1 rounded text-on-surface">PT-05</span>
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between border-b border-outline-variant/30 pb-1">
+<span class="font-body-sm text-body-sm text-on-surface-variant">pH</span>
+<span class="font-tabular-nums text-tabular-nums text-on-surface font-medium">6.4</span>
+</div>
+<div class="flex justify-between">
+<span class="font-body-sm text-body-sm text-on-surface-variant">NPK</span>
+<span class="font-tabular-nums text-tabular-nums text-on-surface font-medium text-xs">110/45/85</span>
+</div>
+</div>
+</div>
+<!-- Point Item -->
+<div class="bg-surface border border-outline-variant/60 hover:border-primary/50 transition-colors rounded-xl p-4 flex flex-col justify-between">
+<div class="flex justify-between items-center mb-3">
+<span class="font-label-caps text-label-caps bg-surface-container-highest px-2 py-1 rounded text-on-surface">PT-06</span>
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between border-b border-outline-variant/30 pb-1">
+<span class="font-body-sm text-body-sm text-on-surface-variant">pH</span>
+<span class="font-tabular-nums text-tabular-nums text-on-surface font-medium">6.5</span>
+</div>
+<div class="flex justify-between">
+<span class="font-body-sm text-body-sm text-on-surface-variant">NPK</span>
+<span class="font-tabular-nums text-tabular-nums text-on-surface font-medium text-xs">114/46/88</span>
+</div>
+</div>
+</div>
+<!-- Point Item -->
+<div class="bg-surface border border-outline-variant/60 hover:border-primary/50 transition-colors rounded-xl p-4 flex flex-col justify-between">
+<div class="flex justify-between items-center mb-3">
+<span class="font-label-caps text-label-caps bg-surface-container-highest px-2 py-1 rounded text-on-surface">PT-07</span>
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between border-b border-outline-variant/30 pb-1">
+<span class="font-body-sm text-body-sm text-on-surface-variant">pH</span>
+<span class="font-tabular-nums text-tabular-nums text-on-surface font-medium">6.2</span>
+</div>
+<div class="flex justify-between">
+<span class="font-body-sm text-body-sm text-on-surface-variant">NPK</span>
+<span class="font-tabular-nums text-tabular-nums text-on-surface font-medium text-xs">105/40/80</span>
+</div>
+</div>
+</div>
+<!-- Point Item -->
+<div class="bg-surface border border-outline-variant/60 hover:border-primary/50 transition-colors rounded-xl p-4 flex flex-col justify-between">
+<div class="flex justify-between items-center mb-3">
+<span class="font-label-caps text-label-caps bg-surface-container-highest px-2 py-1 rounded text-on-surface">PT-08</span>
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between border-b border-outline-variant/30 pb-1">
+<span class="font-body-sm text-body-sm text-on-surface-variant">pH</span>
+<span class="font-tabular-nums text-tabular-nums text-on-surface font-medium">6.4</span>
+</div>
+<div class="flex justify-between">
+<span class="font-body-sm text-body-sm text-on-surface-variant">NPK</span>
+<span class="font-tabular-nums text-tabular-nums text-on-surface font-medium text-xs">111/44/84</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right: Visualizations (Span 4) -->
+<div class="lg:col-span-4 bg-surface-container-lowest border border-outline/10 rounded-2xl p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)] flex flex-col">
+<h2 class="font-h3 text-h3 text-on-surface mb-2">Profile Analysis</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-6">Current vs Ideal benchmark for Zona Selatan.</p>
+<!-- Radar Chart Mockup -->
+<div class="flex-1 relative min-h-[250px] flex items-center justify-center bg-grid-pattern rounded-xl border border-outline-variant/30 overflow-hidden">
+<svg class="w-full h-full max-w-[200px] overflow-visible" viewbox="0 0 200 200">
+<!-- Web background -->
+<polygon class="text-outline-variant/30" fill="none" points="100,20 170,60 170,140 100,180 30,140 30,60" stroke="currentColor" stroke-width="1"></polygon>
+<polygon class="text-outline-variant/30" fill="none" points="100,40 152.5,70 152.5,130 100,160 47.5,130 47.5,70" stroke="currentColor" stroke-width="1"></polygon>
+<polygon class="text-outline-variant/30" fill="none" points="100,60 135,80 135,120 100,140 65,120 65,80" stroke="currentColor" stroke-width="1"></polygon>
+<polygon class="text-outline-variant/30" fill="none" points="100,80 117.5,90 117.5,110 100,120 82.5,110 82.5,90" stroke="currentColor" stroke-width="1"></polygon>
+<!-- Axes -->
+<line class="text-outline-variant/30" stroke="currentColor" stroke-width="1" x1="100" x2="100" y1="100" y2="20"></line>
+<line class="text-outline-variant/30" stroke="currentColor" stroke-width="1" x1="100" x2="170" y1="100" y2="60"></line>
+<line class="text-outline-variant/30" stroke="currentColor" stroke-width="1" x1="100" x2="170" y1="100" y2="140"></line>
+<line class="text-outline-variant/30" stroke="currentColor" stroke-width="1" x1="100" x2="100" y1="100" y2="180"></line>
+<line class="text-outline-variant/30" stroke="currentColor" stroke-width="1" x1="100" x2="30" y1="100" y2="140"></line>
+<line class="text-outline-variant/30" stroke="currentColor" stroke-width="1" x1="100" x2="30" y1="100" y2="60"></line>
+<!-- Ideal Data Polygon (Outline only) -->
+<polygon class="text-primary" fill="none" points="100,30 160,65 160,135 100,170 40,135 40,65" stroke="currentColor" stroke-dasharray="4 2" stroke-width="2"></polygon>
+<!-- Current Data Polygon (Filled) -->
+<polygon class="text-tertiary-fixed opacity-70" fill="currentColor" points="100,45 140,75 145,120 100,160 55,140 45,70" stroke="currentColor" stroke-width="2"></polygon>
+<polygon class="text-tertiary" fill="none" points="100,45 140,75 145,120 100,160 55,140 45,70" stroke="currentColor" stroke-width="2"></polygon>
+<!-- Labels -->
+<text class="font-label-caps text-[10px] fill-on-surface-variant" text-anchor="middle" x="100" y="10">Nitrogen</text>
+<text class="font-label-caps text-[10px] fill-on-surface-variant" text-anchor="middle" x="185" y="60">Phos</text>
+<text class="font-label-caps text-[10px] fill-on-surface-variant" text-anchor="middle" x="185" y="145">Potas</text>
+<text class="font-label-caps text-[10px] fill-on-surface-variant" text-anchor="middle" x="100" y="195">pH</text>
+<text class="font-label-caps text-[10px] fill-on-surface-variant" text-anchor="middle" x="15" y="145">Moist</text>
+<text class="font-label-caps text-[10px] fill-on-surface-variant" text-anchor="middle" x="15" y="60">Org.C</text>
+</svg>
+</div>
+<!-- Legend -->
+<div class="flex items-center gap-4 mt-6 pt-4 border-t border-outline-variant/30">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-sm bg-tertiary-fixed border border-tertiary"></span>
+<span class="font-body-sm text-body-sm text-on-surface">Current</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-sm border-2 border-primary border-dashed"></span>
+<span class="font-body-sm text-body-sm text-on-surface">Ideal Range</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

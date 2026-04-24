@@ -1,17 +1,24 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SoilDataController;
+use Illuminate\Support\Facades\Route;
 
-// 1. Jalur Halaman Utama & Riwayat (Method: GET)
-Route::get('/', [SoilDataController::class, 'index'])->name('welcome');
+Route::get('/', [SoilDataController::class, 'index'])->name('dashboard');
 Route::get('/history', [SoilDataController::class, 'history'])->name('history');
 
-// 2. Jalur Terima Data Form Manual (Method: POST) -> INI YANG TADI ERROR
 Route::post('/analyze-manual', [SoilDataController::class, 'analyzeManual'])->name('analyze.manual');
 
-// 3. Jalur Aksi Tombol Tanam & Reset (Method: POST)
-Route::post('/plant/start', [SoilDataController::class, 'startPlanting'])->name('plant.start');
-Route::post('/plant/reset', [SoilDataController::class, 'resetPlanting'])->name('plant.reset');
-// Halaman Manajemen IoT & Zona
-Route::get('/zones', [SoilDataController::class, 'zones'])->name('zones');
+Route::get('/zones', [SoilDataController::class, 'zones'])->name('zones.index');
+Route::post('/zones', [SoilDataController::class, 'storeZone'])->name('zones.store');
+Route::get('/zones/{zone}', [SoilDataController::class, 'showZone'])->name('zones.show');
+Route::put('/zones/{zone}', [SoilDataController::class, 'updateZone'])->name('zones.update');
+Route::delete('/zones/{zone}', [SoilDataController::class, 'destroyZone'])->name('zones.destroy');
+Route::get('/zones/{zone}/sampling', [SoilDataController::class, 'samplingForm'])->name('zones.sampling');
+Route::post('/zones/{zone}/sampling', [SoilDataController::class, 'storeSampling'])->name('zones.sampling.store');
+Route::get('/zones/{zone}/monitor', [SoilDataController::class, 'monitorZone'])->name('zones.monitor');
+Route::post('/zones/{zone}/analyze', [SoilDataController::class, 'analyzeZone'])->name('zones.analyze');
+Route::post('/zones/{zone}/plant', [SoilDataController::class, 'startPlanting'])->name('zones.plant.start');
+Route::post('/zones/{zone}/plant/reset', [SoilDataController::class, 'resetPlanting'])->name('zones.plant.reset');
+Route::post('/zones/{zone}/care-advice/refresh', [SoilDataController::class, 'refreshCareAdvice'])->name('zones.care.refresh');
+
+Route::redirect('/welcome', '/');

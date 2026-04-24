@@ -41,6 +41,94 @@ php artisan boost:install
 
 Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
 
+## Docker Development
+
+Branch `interface` ini sekarang punya setup Docker dev yang konsisten untuk runtime utama:
+
+- PHP `8.4`
+- Composer `2.8`
+- Node.js `22`
+- Nginx `1.27-alpine`
+- SQLite default dikontrol oleh `.env.docker`
+
+Langkah awal:
+
+```bash
+cp .env.example .env
+cp .env.docker.example .env.docker
+docker compose --env-file .env.docker up --build -d
+docker compose --env-file .env.docker exec app php artisan migrate
+```
+
+Alamat service:
+
+- App: `http://localhost:8080`
+- Vite dev server: `http://localhost:5173`
+
+Perintah yang sering dipakai:
+
+```bash
+docker compose --env-file .env.docker exec app php artisan test
+docker compose --env-file .env.docker exec app composer install
+docker compose --env-file .env.docker exec app php artisan migrate
+docker compose --env-file .env.docker exec vite npm run build
+```
+
+Kalau queue worker juga ingin dijalankan:
+
+```bash
+docker compose --env-file .env.docker --profile workers up -d
+```
+
+## Zone-Based UI + AI Service
+
+Interface sekarang sudah mengikuti alur zona:
+
+- `Dashboard` menampilkan overview zona, telemetri, dan aktivitas terbaru.
+- `Field Zones` menampilkan daftar zona dan status sampling.
+- `Detail Zona` menampilkan agregasi zona, titik sampling, radar profile, dan advice terbaru.
+- `Monitoring` menampilkan histori 1 jam terakhir dan adaptive advice.
+
+Service AI Python ada di folder [`python_service/`](python_service/README.md).
+
+Endpoint utama:
+
+- `POST /predict/zone`
+- `POST /advice/care`
+- `GET /health`
+
+Laravel memanggil service ini melalui:
+
+```bash
+AI_ADVISOR_BASE_URL=http://127.0.0.1:8001
+```
+
+Dalam Docker Compose, default-nya sudah diarahkan ke:
+
+```bash
+AI_ADVISOR_BASE_URL=http://ai:8001
+```
+
+Untuk menjalankan seluruh stack termasuk AI service:
+
+```bash
+docker compose --env-file .env.docker up --build -d app web ai
+docker compose --env-file .env.docker exec app php artisan migrate
+docker compose --env-file .env.docker exec app php artisan db:seed --force
+```
+
+Untuk mengaktifkan adaptive advice setiap 1 jam, jalankan scheduler:
+
+```bash
+docker compose --env-file .env.docker --profile workers up -d scheduler
+```
+
+Atau lokal:
+
+```bash
+php artisan schedule:work
+```
+
 ## Contributing
 
 Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).

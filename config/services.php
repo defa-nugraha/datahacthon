@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'ai_advisor' => [
+        'base_url' => env('AI_ADVISOR_BASE_URL', 'http://127.0.0.1:8001'),
+        'timeout' => env('AI_ADVISOR_TIMEOUT', 20),
+    ],
+
 ];

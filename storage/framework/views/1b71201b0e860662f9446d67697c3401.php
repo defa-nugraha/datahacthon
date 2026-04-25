@@ -1,0 +1,168 @@
+<?php $__env->startSection('title', 'Pemantauan Real-time - ' . $zone->name); ?>
+
+<?php $__env->startSection('content'); ?>
+    <div class="mx-auto max-w-7xl space-y-6">
+        <div class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+            <div>
+                <p class="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">Real-time Monitoring</p>
+                <h1 class="mt-2 text-4xl font-extrabold tracking-tight text-slate-900">Pemantauan <?php echo e($zone->name); ?></h1>
+                <p class="mt-2 text-base text-slate-600"><?php echo e($zone->area_label); ?> · Terakhir diperbarui <?php echo e(optional($zone->soilData()->latest('sampled_at')->first()?->sampled_at)?->diffForHumans() ?? 'belum ada data'); ?></p>
+            </div>
+            <div class="flex gap-3">
+                <a href="<?php echo e(route('zones.show', $zone)); ?>" class="rounded-2xl border border-outline px-5 py-3 text-sm font-semibold text-primary transition hover:border-primary hover:bg-primary-soft">Kembali ke Detail</a>
+                <form action="<?php echo e(route('zones.care.refresh', $zone)); ?>" method="POST">
+                    <?php echo csrf_field(); ?>
+                    <button type="submit" class="rounded-2xl bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-success">
+                        Perbarui Advice
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="grid gap-6 xl:grid-cols-[1fr,1.55fr]">
+            <section class="rounded-3xl border border-outline bg-surface p-6 shadow-panel">
+                <div class="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">Status Kesehatan Tanaman</div>
+                <div class="mt-4 flex items-end gap-3">
+                    <div class="text-6xl font-extrabold tracking-tight text-primary"><?php echo e($monitoring['health_score']); ?>%</div>
+                    <div class="mb-2 text-xl font-semibold text-slate-700"><?php echo e($monitoring['health_score'] >= 85 ? 'Sehat' : 'Perlu perhatian'); ?></div>
+                </div>
+                <div class="mt-5 h-2 rounded-full bg-slate-200">
+                    <div class="h-2 rounded-full bg-primary" style="width: <?php echo e($monitoring['health_score']); ?>%"></div>
+                </div>
+                <div class="mt-2 flex justify-between text-xs font-semibold text-slate-400">
+                    <span>0%</span>
+                    <span>Optimal range: 85-100%</span>
+                    <span>100%</span>
+                </div>
+            </section>
+
+            <section class="rounded-3xl border border-outline bg-surface p-6 shadow-panel">
+                <div class="flex items-start gap-4">
+                    <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-50 text-accent">
+                        <span class="material-symbols-outlined">tips_and_updates</span>
+                    </div>
+                    <div class="flex-1">
+                        <div class="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">AI Adaptive Advice</div>
+                        <?php if($monitoring['latest_advice']): ?>
+                            <p class="mt-3 text-lg font-semibold leading-8 text-slate-900"><?php echo e($monitoring['latest_advice']->advice_summary); ?></p>
+                            <div class="mt-4 flex flex-wrap gap-3">
+                                <?php $__currentLoopData = ($monitoring['latest_advice']->recommendations ?? []); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $recommendation): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <div class="rounded-2xl border border-outline bg-surface-soft px-4 py-3 text-sm">
+                                        <div class="font-semibold text-slate-900"><?php echo e($recommendation['title'] ?? 'Rekomendasi'); ?></div>
+                                        <div class="mt-1 text-slate-500"><?php echo e($recommendation['detail'] ?? ''); ?></div>
+                                    </div>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            </div>
+                        <?php else: ?>
+                            <p class="mt-3 text-sm text-slate-500">Belum ada adaptive advice. Pastikan zona sudah memiliki tanaman aktif dan history sampling dalam 1 jam terakhir.</p>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <section class="space-y-4">
+            <div class="flex items-center gap-2 text-3xl font-bold tracking-tight text-slate-900">
+                <span class="material-symbols-outlined text-primary">monitoring</span>
+                <span>Metrik Tanah Live</span>
+            </div>
+            <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+                <?php
+                    $metricCards = [
+                        ['label' => 'pH Tanah', 'value' => number_format($monitoring['aggregate']['ph']['mean'] ?? 0, 1), 'note' => 'Optimal 6.0 - 7.0', 'icon' => 'water_drop'],
+                        ['label' => 'Nitrogen (N)', 'value' => number_format($monitoring['aggregate']['nitrogen']['mean'] ?? 0, 0) . ' mg/kg', 'note' => 'Target 100 mg/kg', 'icon' => 'grass'],
+                        ['label' => 'Fosfor (P)', 'value' => number_format($monitoring['aggregate']['phosphorus']['mean'] ?? 0, 0) . ' mg/kg', 'note' => 'Target 40-50 mg/kg', 'icon' => 'grain'],
+                        ['label' => 'Kalium (K)', 'value' => number_format($monitoring['aggregate']['potassium']['mean'] ?? 0, 0) . ' mg/kg', 'note' => 'Target 90 mg/kg', 'icon' => 'science'],
+                        ['label' => 'Kelembapan', 'value' => number_format($monitoring['aggregate']['soil_moisture']['mean'] ?? 0, 0) . '%', 'note' => 'History 1 jam terakhir', 'icon' => 'humidity_percentage'],
+                    ];
+                ?>
+                <?php $__currentLoopData = $metricCards; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $metric): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <div class="rounded-3xl border border-outline bg-surface p-5 shadow-panel">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400"><?php echo e($metric['label']); ?></div>
+                            <span class="material-symbols-outlined text-slate-400"><?php echo e($metric['icon']); ?></span>
+                        </div>
+                        <div class="mt-5 text-4xl font-extrabold tracking-tight text-slate-900"><?php echo e($metric['value']); ?></div>
+                        <div class="mt-3 text-sm text-slate-500"><?php echo e($metric['note']); ?></div>
+                    </div>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+            </div>
+        </section>
+
+        <div class="grid gap-6 xl:grid-cols-[2fr,1fr]">
+            <section class="rounded-3xl border border-outline bg-surface p-6 shadow-panel">
+                <div class="flex items-center justify-between gap-3">
+                    <div>
+                        <h2 class="text-3xl font-bold tracking-tight text-slate-900">Grafik 1 Jam Terakhir</h2>
+                        <p class="text-sm text-slate-500">Ringkasan NPK gabungan dan kelembapan untuk history 1 jam.</p>
+                    </div>
+                    <div class="text-sm font-semibold text-slate-500"><?php echo e($monitoring['history_count']); ?> titik data</div>
+                </div>
+                <div class="mt-6 h-80">
+                    <canvas id="monitoringChart"></canvas>
+                </div>
+            </section>
+
+            <section class="rounded-3xl border border-outline bg-surface p-6 shadow-panel">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-3xl font-bold tracking-tight text-slate-900">Peringatan Sistem</h2>
+                    <span class="rounded-full bg-surface-soft px-3 py-1 text-xs font-semibold text-slate-500"><?php echo e($monitoring['alerts']->count()); ?> baru</span>
+                </div>
+                <div class="mt-5 space-y-4">
+                    <?php $__empty_1 = true; $__currentLoopData = $monitoring['alerts']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $alert): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                        <div class="rounded-2xl border px-4 py-4 <?php echo e($alert['tone'] === 'red' ? 'border-rose-200 bg-rose-50' : ($alert['tone'] === 'amber' ? 'border-amber-200 bg-amber-50' : 'border-sky-200 bg-sky-50')); ?>">
+                            <div class="font-semibold text-slate-900"><?php echo e($alert['title']); ?></div>
+                            <div class="mt-1 text-sm text-slate-600"><?php echo e($alert['description']); ?></div>
+                        </div>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                        <div class="rounded-2xl border border-outline bg-surface-soft px-4 py-6 text-sm text-slate-500">
+                            Belum ada alert aktif. Sistem akan menampilkan peringatan saat kondisi nutrisi atau kelembapan mulai menyimpang.
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </section>
+        </div>
+    </div>
+<?php $__env->stopSection(); ?>
+
+<?php $__env->startPush('scripts'); ?>
+    <script>
+        const monitoringChartPayload = <?php echo json_encode($monitoring['history_chart'], 15, 512) ?>;
+        const monitoringCtx = document.getElementById('monitoringChart');
+
+        if (monitoringCtx) {
+            new Chart(monitoringCtx, {
+                type: 'line',
+                data: {
+                    labels: monitoringChartPayload.labels,
+                    datasets: [
+                        {
+                            label: 'NPK',
+                            data: monitoringChartPayload.npk,
+                            borderColor: '#154212',
+                            backgroundColor: '#154212',
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Kelembapan',
+                            data: monitoringChartPayload.moisture,
+                            borderColor: '#0b4f7d',
+                            backgroundColor: '#0b4f7d',
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { grid: { color: '#ecece4' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+    </script>
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH /var/www/html/resources/views/zones/monitor.blade.php ENDPATH**/ ?>

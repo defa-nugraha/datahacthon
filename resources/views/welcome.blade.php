@@ -1,8 +1,4 @@
-@extends('layouts.app')
-
-@section('title', 'Dashboard - Vera AI')
-
-@section('content')
+<x-app-layout>
     <div class="mx-auto max-w-7xl space-y-6">
         <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
@@ -206,7 +202,7 @@
             </div>
         </section>
     </div>
-@endsection
+</x-app-layout>
 
 @push('scripts')
     <script>

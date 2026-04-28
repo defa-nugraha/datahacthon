@@ -242,4 +242,35 @@ class SoilDataController extends Controller
             'sample_target_count' => ['nullable', 'integer', 'min:3', 'max:24'],
         ]);
     }
+
+    public function devices(): View
+    {
+        $devices = \App\Models\Device::latest()->get()->map(function ($device) {
+            // Jika data terakhir masuk lebih dari 5 menit, set offline otomatis
+            if ($device->last_sync && $device->last_sync->diffInMinutes(now()) > 5) {
+                $device->status = 'offline';
+            }
+            return $device;
+        });
+
+        return view('devices.index', compact('devices'));
+    }
+
+    public function storeDevice(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'client_id' => 'required|string|unique:devices,client_id',
+            'connection_type' => 'required|string',
+        ]);
+
+        Device::create([
+            'name' => $validated['name'],
+            'client_id' => $validated['client_id'],
+            'connection_type' => $validated['connection_type'],
+            'status' => 'offline', // Default awal pasti offline
+        ]);
+
+        return redirect()->route('devices.index')->with('success', 'Device berhasil didaftarkan!');
+    }
 }

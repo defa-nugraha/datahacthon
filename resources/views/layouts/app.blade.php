@@ -3,8 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Vera AI')</title>
+    <meta name="dicoding:email" content="starduststr0@gmail.com">
+    <meta name="dicoding:email" content="tsaqib.nur@gmail.com">
+    <meta name="dicoding:email" content="tsaqib.nur@gmail.com">
+    <title>{{ config('app.name', 'Vera AI') }}</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -135,14 +139,48 @@
                         <button class="rounded-full p-2 text-slate-500 hover:bg-surface-soft">
                             <span class="material-symbols-outlined">notifications</span>
                         </button>
-                        <button class="rounded-full p-2 text-slate-500 hover:bg-surface-soft">
+                        <a href="{{ route('devices.index') }}" class="rounded-full p-2 text-slate-500 hover:bg-surface-soft transition-colors" title="Manage Devices">
                             <span class="material-symbols-outlined">settings</span>
-                        </button>
-                        <button class="rounded-full p-2 text-slate-500 hover:bg-surface-soft">
-                            <span class="material-symbols-outlined">help</span>
-                        </button>
-                        <div class="ml-1 flex h-10 w-10 items-center justify-center rounded-full bg-primary-soft text-primary font-bold">
-                            AI
+                        </a>
+                        
+                        <div x-data="{ open: false }" class="relative">
+                            <button @click="open = !open" @click.outside="open = false" class="flex items-center transition duration-150 ease-in-out focus:outline-none">
+                                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary-soft text-primary font-bold hover:bg-primary hover:text-white transition-all shadow-sm">
+                                    {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
+                                </div>
+                            </button>
+
+                            <div x-show="open" 
+                                x-transition:enter="transition ease-out duration-200"
+                                x-transition:enter-start="opacity-0 scale-95"
+                                x-transition:enter-end="opacity-100 scale-100"
+                                x-transition:leave="transition ease-in duration-75"
+                                x-transition:leave-start="opacity-100 scale-100"
+                                x-transition:leave-end="opacity-0 scale-95"
+                                class="absolute right-0 mt-2 w-56 rounded-2xl border border-outline bg-white shadow-panel z-50 py-2 origin-top-right"
+                                style="display: none;">
+                                
+                                <div class="px-4 py-2 border-b border-outline mb-1">
+                                    <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">User Profile</p>
+                                    <p class="text-sm font-bold text-slate-800 truncate">{{ Auth::user()->name }}</p>
+                                    <p class="text-[11px] text-slate-500 truncate">{{ Auth::user()->email }}</p>
+                                </div>
+
+                                <a href="{{ route('profile.edit') }}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-600 hover:bg-surface-soft hover:text-primary transition">
+                                    <span class="material-symbols-outlined text-[20px]">settings</span>
+                                    <span>Settings Profile</span>
+                                </a>
+
+                                <div class="border-t border-outline mt-1 pt-1">
+                                    <form method="POST" action="{{ route('logout') }}">
+                                        @csrf
+                                        <button type="submit" class="flex w-full items-center gap-3 px-4 py-2.5 text-sm font-bold text-rose-600 hover:bg-rose-50 transition">
+                                            <span class="material-symbols-outlined text-[20px]">logout</span>
+                                            <span>Log Out</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -166,7 +204,11 @@
                     </div>
                 @endif
 
-                @yield('content')
+                @if(isset($slot))
+                    {{ $slot }}
+                @else
+                    @yield('content')
+                @endif
             </main>
         </div>
     </div>

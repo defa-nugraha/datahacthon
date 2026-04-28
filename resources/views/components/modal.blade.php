@@ -1,42 +1,82 @@
 @props([
-    'id',
-    'title' => null,
-    'description' => null,
-    'maxWidth' => 'max-w-3xl',
+    'name' => null,  // Kasih nilai null biar nggak dianggap 'undefined'
+    'show' => false,
+    'maxWidth' => '2xl'
 ])
 
+@php
+$maxWidth = [
+    'sm' => 'sm:max-w-sm',
+    'md' => 'sm:max-w-md',
+    'lg' => 'sm:max-w-lg',
+    'xl' => 'sm:max-w-xl',
+    '2xl' => 'sm:max-w-2xl',
+    'max-w-2xl' => 'sm:max-w-2xl', // <-- Penyelamat 1
+    'max-w-3xl' => 'sm:max-w-3xl', // <-- Jaga-jaga kalo tech lead lu pake ukuran ini
+    'max-w-4xl' => 'sm:max-w-4xl', 
+    'max-w-md'  => 'sm:max-w-md',
+][$maxWidth ?? '2xl'];
+@endphp
+
 <div
-    id="{{ $id }}"
-    data-modal
-    class="fixed inset-0 z-[70] hidden"
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="{{ $id }}-title"
+    x-data="{
+        show: @js($show),
+        focusables() {
+            // All focusable element types...
+            let selector = 'a, button, input:not([type=\'hidden\']), textarea, select, details, [tabindex]:not([tabindex=\'-1\'])'
+            return [...$el.querySelectorAll(selector)]
+                // All non-disabled elements...
+                .filter(el => ! el.hasAttribute('disabled'))
+        },
+        firstFocusable() { return this.focusables()[0] },
+        lastFocusable() { return this.focusables().slice(-1)[0] },
+        nextFocusable() { return this.focusables()[this.nextFocusableIndex()] || this.firstFocusable() },
+        prevFocusable() { return this.focusables()[this.prevFocusableIndex()] || this.lastFocusable() },
+        nextFocusableIndex() { return (this.focusables().indexOf(document.activeElement) + 1) % (this.focusables().length + 1) },
+        prevFocusableIndex() { return Math.max(0, this.focusables().indexOf(document.activeElement)) -1 },
+    }"
+    x-init="$watch('show', value => {
+        if (value) {
+            document.body.classList.add('overflow-y-hidden');
+            {{ $attributes->has('focusable') ? 'setTimeout(() => firstFocusable().focus(), 100)' : '' }}
+        } else {
+            document.body.classList.remove('overflow-y-hidden');
+        }
+    })"
+    x-on:open-modal.window="$event.detail == '{{ $name }}' ? show = true : null"
+    x-on:close-modal.window="$event.detail == '{{ $name }}' ? show = false : null"
+    x-on:close.stop="show = false"
+    x-on:keydown.escape.window="show = false"
+    x-on:keydown.tab.prevent="$event.shiftKey || nextFocusable().focus()"
+    x-on:keydown.shift.tab.prevent="prevFocusable().focus()"
+    x-show="show"
+    class="fixed inset-0 overflow-y-auto px-4 py-6 sm:px-0 z-50"
+    style="display: {{ $show ? 'block' : 'none' }};"
 >
-    <div class="absolute inset-0 bg-slate-950/50 backdrop-blur-sm" data-modal-close></div>
-    <div class="relative flex min-h-full items-end justify-center p-4 sm:items-center sm:p-6">
-        <div class="relative w-full {{ $maxWidth }} overflow-hidden rounded-[2rem] border border-outline bg-surface shadow-2xl">
-            <div class="flex items-start justify-between gap-4 border-b border-outline px-5 py-4 sm:px-6">
-                <div class="min-w-0">
-                    @if ($title)
-                        <h2 id="{{ $id }}-title" class="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">{{ $title }}</h2>
-                    @endif
-                    @if ($description)
-                        <p class="mt-1 text-sm text-slate-500">{{ $description }}</p>
-                    @endif
-                </div>
-                <button
-                    type="button"
-                    data-modal-close
-                    class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-slate-500 transition hover:bg-surface-soft hover:text-slate-900"
-                    aria-label="Tutup modal"
-                >
-                    <span class="material-symbols-outlined">close</span>
-                </button>
-            </div>
-            <div class="app-scrollbar max-h-[calc(100vh-6rem)] overflow-y-auto px-5 py-5 sm:px-6 sm:py-6">
-                {{ $slot }}
-            </div>
-        </div>
+    <div
+        x-show="show"
+        class="fixed inset-0 transform transition-all"
+        x-on:click="show = false"
+        x-transition:enter="ease-out duration-300"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="ease-in duration-200"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+    >
+        <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+    </div>
+
+    <div
+        x-show="show"
+        class="mb-6 bg-white rounded-lg overflow-hidden shadow-xl transform transition-all sm:w-full {{ $maxWidth }} sm:mx-auto"
+        x-transition:enter="ease-out duration-300"
+        x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+        x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+        x-transition:leave="ease-in duration-200"
+        x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+        x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+    >
+        {{ $slot }}
     </div>
 </div>

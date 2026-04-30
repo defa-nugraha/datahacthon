@@ -1,24 +1,21 @@
-# DATAHACTHON Zone-Based Pipeline
+# DATAHACTHON Expanded Zone-Based Pipeline
 
-Project ini sekarang difokuskan hanya pada **pipeline rekomendasi vegetasi/tanaman berbasis zona**.
+Project ini difokuskan pada **pipeline rekomendasi vegetasi/tanaman berbasis zona** untuk kebutuhan penilaian model, API inferensi, dan insight strategis.
 
 Komponen aktif:
 
-- dataset proses zona di `data/processed/zone_*`
-- artifact model zona di `artifacts/zone_*`
+- dataset model aktif di `data/processed/zone_dataset_expanded_id.csv`
+- metadata model aktif di `data/processed/zone_dataset_expanded_id_metadata.json`
 - model API default di `artifacts/models/best_zone_model_expanded.joblib`
 - preprocessing API default di `artifacts/pipelines/best_zone_pipeline_expanded.joblib`
-- notebook aktif di `notebooks/zone_based_vegetation_recommendation.ipynb`
+- notebook penilaian aktif di `notebooks/zone_model_submission_assessment.ipynb`
 - API inferensi zona di `app/`
-- script pipeline zona di `scripts/build_zone_dataset.py`, `scripts/train_zone_model.py`, `scripts/prepare_zone_dataset_expanded.py`, `scripts/train_zone_model_expanded.py`, dan `scripts/assess_zone_submission.py`
+- script pipeline zona di `scripts/prepare_zone_dataset_expanded.py`, `scripts/train_zone_model_expanded.py`, `scripts/assess_zone_submission.py`, dan `scripts/generate_submission_notebook.py`
 
 Source dataset aktif:
 
 - `datasets/csv/mendeley_8v757rr4st_crop_recommendation_soil_weather.csv`
-
-File dan artifact dari pipeline sebelum sistem zona dipindahkan ke:
-
-- `archive/legacy_pre_zone/`
+- `datasets/csv/crop_recommendation_kaggle_mirror.csv`
 
 Dokumentasi API:
 
@@ -30,3 +27,10 @@ Artifact evaluasi submission:
 - `artifacts/per_class_metrics_expanded.csv`
 - `artifacts/feature_importance_best_model_expanded.csv`
 - `artifacts/submission_scorecard.md`
+
+Model aktif:
+
+- model: `ExtraTrees`
+- scenario: `zone_mean_plus_variability`
+- accuracy: `0.8750`
+- macro F1: `0.8308`

@@ -2,3 +2,10 @@
 .pytest_cache
 __pycache__/
 *.pyc
+.phpunit.result.cache
+catboost_info/
+database/*.sqlite
+storage/logs/*.log
+storage/framework/views/*.php
+bootstrap/cache/*.php
+public/hot

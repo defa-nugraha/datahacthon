@@ -24,10 +24,6 @@ def code_cell(text: str):
 def build_notebook() -> nbf.NotebookNode:
     nb = nbf.v4.new_notebook()
     nb["metadata"] = {
-        "colab": {
-            "name": ZONE_SUBMISSION_NOTEBOOK_PATH.name,
-            "provenance": [],
-        },
         "kernelspec": {
             "display_name": "Python 3",
             "language": "python",
@@ -42,304 +38,148 @@ def build_notebook() -> nbf.NotebookNode:
     nb["cells"] = [
         markdown_cell(
             """
-            # Zone Model Submission Assessment Notebook
+            # Pembuatan Model Rekomendasi Vegetasi Berbasis Zona
 
-            Notebook ini mendokumentasikan **proses pembuatan model zona aktif saat ini** beserta EDA, evaluasi, rekayasa fitur, pemilihan model, pemanfaatan AI/Azure, dan insight strategis.
-
-            Fokus notebook:
-            - hanya memakai **dataset zona aktif expanded** yang sedang dipakai model saat ini
-            - menampilkan artefak yang relevan untuk penilaian lomba
-            - tetap memberi opsi untuk **rebuild dataset** dan **retrain model** bila diperlukan
+            Notebook ini berisi proses pembuatan model klasifikasi tanaman berbasis zona, mulai dari pemuatan dataset, eksplorasi data, rekayasa fitur, pemilihan model, evaluasi, hingga penyimpanan artifact.
             """
         ),
         markdown_cell(
             """
-            ## Kriteria Penilaian yang Ditargetkan
-
-            Notebook ini disusun agar mudah dipetakan ke rubric:
-
-            1. **Metodologi dan Eksplorasi Data**
-            2. **Performa Model dan Kualitas Kode**
-            3. **Pemanfaatan AI dan Layanan Microsoft Azure**
-            4. **Insight dan Solusi Strategis**
-
-            Metrik seleksi utama tetap **macro F1**, karena dataset expanded masih imbalance dan beberapa kelas memiliki support rendah.
-            """
-        ),
-        markdown_cell(
-            """
-            ## Setup Lokal / Colab
-
-            Jika dijalankan di Google Colab:
-            - upload atau mount seluruh folder project, bukan file notebook saja
-            - simpan project di `/content/DATAHACTHON` atau di Google Drive
-            - bila perlu set `COLAB_PROJECT_ROOT`
+            ## 1. Setup Environment
             """
         ),
         code_cell(
             """
             import os
-            import subprocess
             import sys
             from pathlib import Path
-
-            IN_COLAB = "google.colab" in sys.modules
-            MOUNT_GOOGLE_DRIVE = False
-            COLAB_PROJECT_ROOT = None
-            # Contoh:
-            # MOUNT_GOOGLE_DRIVE = True
-            # COLAB_PROJECT_ROOT = "/content/drive/MyDrive/DATAHACTHON"
-
-            if IN_COLAB and MOUNT_GOOGLE_DRIVE:
-                from google.colab import drive
-                drive.mount("/content/drive")
-
-            if IN_COLAB:
-                subprocess.check_call(
-                    [
-                        sys.executable,
-                        "-m",
-                        "pip",
-                        "install",
-                        "-q",
-                        "pandas",
-                        "numpy",
-                        "matplotlib",
-                        "seaborn",
-                        "scikit-learn",
-                        "joblib",
-                        "catboost",
-                        "lightgbm",
-                        "xgboost",
-                        "openai",
-                        "azure-identity",
-                        "nbformat",
-                    ]
-                )
 
 
             def _is_project_root(path: Path) -> bool:
                 return (path / "scripts").exists() and (path / "data").exists() and (path / "artifacts").exists()
 
 
-            def resolve_project_root(explicit_root: str | None = None) -> Path:
-                if explicit_root:
-                    candidate = Path(explicit_root).expanduser().resolve()
+            def resolve_project_root() -> Path:
+                cwd = Path.cwd().resolve()
+                for candidate in [cwd, *cwd.parents]:
                     if _is_project_root(candidate):
                         return candidate
-                    raise FileNotFoundError(
-                        f"COLAB_PROJECT_ROOT tidak valid: {candidate}. "
-                        "Folder harus mengandung `scripts/`, `data/`, dan `artifacts/`."
-                    )
-
-                cwd = Path.cwd().resolve()
-                direct_candidates = [
-                    cwd,
-                    *cwd.parents,
-                    Path("/content/DATAHACTHON"),
-                    Path("/content/drive/MyDrive/DATAHACTHON"),
-                    Path("/content/drive/MyDrive/Colab Notebooks/DATAHACTHON"),
-                ]
-                seen = set()
-                for candidate in direct_candidates:
-                    key = str(candidate)
-                    if key in seen:
-                        continue
-                    seen.add(key)
-                    if candidate.exists() and _is_project_root(candidate):
-                        return candidate
-                raise FileNotFoundError("Project root tidak ditemukan. Set COLAB_PROJECT_ROOT bila perlu.")
+                raise FileNotFoundError("Project root tidak ditemukan.")
 
 
-            PROJECT_ROOT = resolve_project_root(COLAB_PROJECT_ROOT)
+            PROJECT_ROOT = resolve_project_root()
             os.chdir(PROJECT_ROOT)
             if str(PROJECT_ROOT) not in sys.path:
                 sys.path.insert(0, str(PROJECT_ROOT))
 
-            print("IN_COLAB =", IN_COLAB)
             print("PROJECT_ROOT =", PROJECT_ROOT)
-            """
-        ),
-        markdown_cell(
-            """
-            ## Konfigurasi Eksekusi
-
-            - `REBUILD_DATASET`: membangun ulang dataset expanded dari pipeline integrasi data
-            - `RETRAIN_MODEL`: melatih ulang model expanded aktif
-            - `REFRESH_ASSESSMENT_ARTIFACTS`: menyegarkan EDA summary, scorecard, per-class metrics, dan feature importance
-
-            Default notebook memakai artifact aktif agar lebih cepat dibuka, tetapi tetap merepresentasikan pipeline model saat ini.
-            """
-        ),
-        code_cell(
-            """
-            REBUILD_DATASET = False
-            RETRAIN_MODEL = False
-            REFRESH_ASSESSMENT_ARTIFACTS = True
-            RANDOM_STATE = 42
             """
         ),
         code_cell(
             """
             import json
-            from pprint import pprint
 
-            import joblib
             import matplotlib.pyplot as plt
             import numpy as np
             import pandas as pd
             import seaborn as sns
-            from IPython.display import Markdown, display
+            from IPython.display import display
 
             plt.style.use("seaborn-v0_8-whitegrid")
             sns.set_palette("deep")
             pd.set_option("display.max_columns", 120)
             pd.set_option("display.width", 180)
 
-            from app.core.config import Settings
-            from scripts.assess_zone_submission import main as assess_submission
-            from scripts.common import PROJECT_ROOT as CODE_PROJECT_ROOT
             from scripts.prepare_zone_dataset_expanded import main as prepare_zone_dataset_expanded
             from scripts.train_zone_model_expanded import main as train_zone_model_expanded
             """
         ),
         markdown_cell(
             """
-            ## 1. Rebuild Pipeline Opsional
+            ## 2. Konfigurasi Pipeline
 
-            Cell ini membuat notebook tetap jujur terhadap proses model saat ini. Jika flag diaktifkan:
-            - dataset expanded akan dibangun ulang
-            - model expanded akan dilatih ulang
-            - artefak penilaian akan disegarkan
+            Gunakan `REBUILD_DATASET=True` untuk membangun ulang dataset zona expanded. Gunakan `FIT_MODEL=True` untuk melatih ulang model dan menulis ulang artifact evaluasi.
+            """
+        ),
+        code_cell(
+            """
+            REBUILD_DATASET = False
+            FIT_MODEL = False
+            RANDOM_STATE = 42
+
+            DATASET_PATH = PROJECT_ROOT / "data" / "processed" / "zone_dataset_expanded_id.csv"
+            METADATA_PATH = PROJECT_ROOT / "data" / "processed" / "zone_dataset_expanded_id_metadata.json"
+            METRICS_PATH = PROJECT_ROOT / "artifacts" / "best_model_metrics_expanded.json"
+            COMPARISON_PATH = PROJECT_ROOT / "artifacts" / "model_comparison_expanded.csv"
+            REPORT_PATH = PROJECT_ROOT / "artifacts" / "classification_report_best_model_expanded.txt"
+            MODEL_PATH = PROJECT_ROOT / "artifacts" / "models" / "best_zone_model_expanded.joblib"
+            PIPELINE_PATH = PROJECT_ROOT / "artifacts" / "pipelines" / "best_zone_pipeline_expanded.joblib"
+            """
+        ),
+        markdown_cell(
+            """
+            ## 3. Persiapan Dataset Zona
             """
         ),
         code_cell(
             """
             if REBUILD_DATASET:
-                preparation_summary = prepare_zone_dataset_expanded()
-                print("Dataset expanded rebuilt.")
-                pprint(preparation_summary if preparation_summary is not None else {})
-
-            if RETRAIN_MODEL:
-                training_summary = train_zone_model_expanded()
-                print("Expanded model retrained.")
-                pprint(training_summary if training_summary is not None else {})
-
-            if REFRESH_ASSESSMENT_ARTIFACTS:
-                assess_submission()
-                print("Assessment artifacts refreshed.")
-            """
-        ),
-        markdown_cell(
-            """
-            ## 2. Load Dataset dan Artifact Aktif
-
-            Dataset dan artefak yang dipakai notebook ini:
-            - `data/processed/zone_dataset_expanded_id.csv`
-            - `data/processed/zone_dataset_expanded_id_metadata.json`
-            - `artifacts/best_model_metrics_expanded.json`
-            - `artifacts/model_comparison_expanded.csv`
-            - `artifacts/per_class_metrics_expanded.csv`
-            - `artifacts/feature_importance_best_model_expanded.csv`
-            - `artifacts/submission_scorecard.md`
-            """
-        ),
-        code_cell(
-            """
-            DATASET_PATH = PROJECT_ROOT / "data" / "processed" / "zone_dataset_expanded_id.csv"
-            METADATA_PATH = PROJECT_ROOT / "data" / "processed" / "zone_dataset_expanded_id_metadata.json"
-            METRICS_PATH = PROJECT_ROOT / "artifacts" / "best_model_metrics_expanded.json"
-            COMPARISON_PATH = PROJECT_ROOT / "artifacts" / "model_comparison_expanded.csv"
-            PER_CLASS_PATH = PROJECT_ROOT / "artifacts" / "per_class_metrics_expanded.csv"
-            IMPORTANCE_PATH = PROJECT_ROOT / "artifacts" / "feature_importance_best_model_expanded.csv"
-            SCORECARD_PATH = PROJECT_ROOT / "artifacts" / "submission_scorecard.md"
+                prepare_zone_dataset_expanded()
 
             zone_df = pd.read_csv(DATASET_PATH)
             metadata = json.loads(METADATA_PATH.read_text(encoding="utf-8"))
-            metrics_payload = json.loads(METRICS_PATH.read_text(encoding="utf-8"))
-            comparison_df = pd.read_csv(COMPARISON_PATH)
-            per_class_df = pd.read_csv(PER_CLASS_PATH)
-            importance_df = pd.read_csv(IMPORTANCE_PATH)
-
-            selected_scenario = metrics_payload["selected_zone_scenario"]
-            selected_metrics = metrics_payload["selected_zone_test_metrics"]
-            selected_feature_columns = metrics_payload[selected_scenario]["feature_columns"]
 
             print("Dataset shape:", zone_df.shape)
-            print("Selected scenario:", selected_scenario)
-            print("Selected model:", metrics_payload["selected_zone_model_name"])
-            print("Feature count:", len(selected_feature_columns))
-            """
-        ),
-        markdown_cell(
-            """
-            ## 3. Snapshot Dataset Aktif
-
-            Section ini menjawab bagian audit dasar:
-            - target aktif
-            - jumlah kelas
-            - distribusi sumber data
-            - ukuran dataset
-            - struktur zona dan group split
-            """
-        ),
-        code_cell(
-            """
-            snapshot_df = pd.DataFrame(
-                [
-                    {"item": "dataset_path", "value": str(DATASET_PATH.relative_to(PROJECT_ROOT))},
-                    {"item": "target_column", "value": metrics_payload["target_column"]},
-                    {"item": "jumlah_zona", "value": zone_df.shape[0]},
-                    {"item": "jumlah_kelas", "value": zone_df[metrics_payload["target_column"]].nunique()},
-                    {"item": "jumlah_konteks", "value": zone_df["base_context_id"].nunique()},
-                    {"item": "selected_scenario", "value": selected_scenario},
-                    {"item": "selected_model", "value": metrics_payload["selected_zone_model_name"]},
-                    {"item": "group_split", "value": metrics_payload["split_strategy"]["group_column"]},
-                ]
-            )
-            display(snapshot_df)
+            print("Jumlah kelas:", zone_df["zone_target"].nunique())
             display(zone_df.head())
             """
         ),
+        code_cell(
+            """
+            dataset_summary = pd.DataFrame(
+                [
+                    {"item": "jumlah_zona", "value": zone_df.shape[0]},
+                    {"item": "jumlah_kolom", "value": zone_df.shape[1]},
+                    {"item": "jumlah_kelas", "value": zone_df["zone_target"].nunique()},
+                    {"item": "jumlah_context_group", "value": zone_df["base_context_id"].nunique()},
+                    {"item": "target_column", "value": "zone_target"},
+                ]
+            )
+            display(dataset_summary)
+
+            display(pd.Series(metadata.get("source_distribution", {}), name="zone_count").rename_axis("source_dataset").reset_index())
+            """
+        ),
         markdown_cell(
             """
-            ## 4. EDA: Distribusi Kelas dan Sumber Data
-
-            Ini bagian utama untuk penilaian **Metodologi dan Eksplorasi Data**.
+            ## 4. Exploratory Data Analysis
             """
         ),
         code_cell(
             """
-            fig, axes = plt.subplots(1, 2, figsize=(16, 5))
+            target_counts = zone_df["zone_target"].value_counts()
 
-            target_counts = zone_df[metrics_payload["target_column"]].value_counts()
-            sns.barplot(x=target_counts.values, y=target_counts.index, ax=axes[0])
-            axes[0].set_title("Distribusi Kelas Zona")
-            axes[0].set_xlabel("Jumlah Zona")
-            axes[0].set_ylabel("Label")
-
-            source_counts = zone_df["source_dataset"].value_counts()
-            sns.barplot(x=source_counts.values, y=source_counts.index, ax=axes[1])
-            axes[1].set_title("Distribusi Sumber Dataset")
-            axes[1].set_xlabel("Jumlah Zona")
-            axes[1].set_ylabel("Source Dataset")
-
+            plt.figure(figsize=(10, 6))
+            sns.barplot(x=target_counts.values, y=target_counts.index)
+            plt.title("Distribusi Kelas Tanaman")
+            plt.xlabel("Jumlah Zona")
+            plt.ylabel("Kelas")
             plt.tight_layout()
-            display(target_counts.rename_axis("label").reset_index(name="zone_count"))
-            display(source_counts.rename_axis("source_dataset").reset_index(name="zone_count"))
+
+            display(target_counts.rename_axis("zone_target").reset_index(name="zone_count"))
             """
         ),
         code_cell(
             """
-            fig, axes = plt.subplots(1, 2, figsize=(16, 5))
+            fig, axes = plt.subplots(1, 2, figsize=(15, 5))
 
             sns.histplot(zone_df["sample_count"], bins=12, ax=axes[0])
-            axes[0].set_title("Distribusi Jumlah Sample per Zona")
+            axes[0].set_title("Distribusi Sample per Zona")
             axes[0].set_xlabel("sample_count")
 
             if "zone_label_dominance_ratio" in zone_df.columns:
                 sns.histplot(zone_df["zone_label_dominance_ratio"], bins=10, ax=axes[1])
-                axes[1].set_title("Dominance Ratio Label per Zona")
+                axes[1].set_title("Dominansi Label per Zona")
                 axes[1].set_xlabel("zone_label_dominance_ratio")
             else:
                 axes[1].axis("off")
@@ -347,101 +187,74 @@ def build_notebook() -> nbf.NotebookNode:
             plt.tight_layout()
             """
         ),
-        markdown_cell(
-            """
-            ## 5. EDA: Kualitas Fitur dan Missing Values
-
-            Karena model aktif memakai feature schema fixed, kualitas fitur dan kelengkapan kolom perlu ditampilkan secara eksplisit.
-            """
-        ),
         code_cell(
             """
-            missing_df = (
-                zone_df[selected_feature_columns]
-                .isna()
-                .mean()
-                .sort_values(ascending=False)
-                .rename("missing_ratio")
-                .reset_index()
-                .rename(columns={"index": "feature"})
-            )
-
-            quality_summary = pd.DataFrame(
-                [
-                    {"metric": "feature_count", "value": len(selected_feature_columns)},
-                    {"metric": "mean_missing_ratio", "value": float(zone_df[selected_feature_columns].isna().mean().mean())},
-                    {"metric": "max_missing_ratio", "value": float(zone_df[selected_feature_columns].isna().mean().max())},
-                    {"metric": "group_column_unique", "value": int(zone_df["base_context_id"].nunique())},
-                ]
-            )
-            display(quality_summary)
-            display(missing_df.head(15))
-            """
-        ),
-        code_cell(
-            """
-            core_mean_features = [
-                column
-                for column in [
-                    "ph_mean",
-                    "nitrogen_mean",
-                    "phosphorus_mean",
-                    "potassium_mean",
-                    "temperature_mean_mean",
-                    "rainfall_mean_mean",
-                ]
-                if column in zone_df.columns
+            core_features = [
+                "ph_mean",
+                "nitrogen_mean",
+                "phosphorus_mean",
+                "potassium_mean",
+                "temperature_mean_mean",
+                "rainfall_mean_mean",
             ]
+            core_features = [column for column in core_features if column in zone_df.columns]
 
             fig, axes = plt.subplots(2, 3, figsize=(18, 8))
             axes = axes.flatten()
-            for ax, column in zip(axes, core_mean_features):
+            for ax, column in zip(axes, core_features):
                 sns.histplot(zone_df[column], kde=True, ax=ax)
                 ax.set_title(column)
-            for ax in axes[len(core_mean_features):]:
+            for ax in axes[len(core_features):]:
                 ax.axis("off")
             plt.tight_layout()
             """
         ),
         code_cell(
             """
-            corr_columns = [column for column in core_mean_features if zone_df[column].nunique() > 1]
-            corr_matrix = zone_df[corr_columns].corr(numeric_only=True)
+            missing_summary = (
+                zone_df.isna()
+                .mean()
+                .sort_values(ascending=False)
+                .rename("missing_ratio")
+                .reset_index()
+                .rename(columns={"index": "column"})
+            )
+            display(missing_summary.head(20))
+            """
+        ),
+        code_cell(
+            """
+            corr_matrix = zone_df[core_features].corr(numeric_only=True)
 
             plt.figure(figsize=(8, 6))
             sns.heatmap(corr_matrix, annot=True, cmap="YlGnBu", fmt=".2f")
-            plt.title("Korelasi Fitur Mean Inti")
+            plt.title("Korelasi Fitur Inti")
             plt.tight_layout()
             """
         ),
         markdown_cell(
             """
-            ## 6. Rekayasa Fitur dan Strategi Integrasi
+            ## 5. Rekayasa Fitur Zona
 
-            Ringkasan feature engineering model saat ini:
-            - unit analisis: **zona**
-            - skenario terpilih: **mean plus variability**
-            - fitur yang dipakai tidak hanya mean, tetapi juga `std`, `min`, `max`, `median`, `count`, `range`, `cv`, `missing_ratio`
-            - split evaluasi memakai `base_context_id` agar kebocoran antarkonteks ditekan
+            Dataset model menggunakan dua skenario fitur:
+
+            - `zone_mean_only`: fitur rata-rata zona
+            - `zone_mean_plus_variability`: fitur rata-rata ditambah variasi internal zona seperti `std`, `min`, `max`, `median`, `range`, `cv`, dan `missing_ratio`
             """
         ),
         code_cell(
             """
+            metrics_payload = json.loads(METRICS_PATH.read_text(encoding="utf-8"))
+
             scenario_summary = pd.DataFrame(
                 [
                     {
                         "scenario": "zone_mean_only",
                         "feature_count": len(metrics_payload["zone_mean_only"]["feature_columns"]),
-                        "best_model": metrics_payload["zone_mean_only"]["best_model_name"],
-                        "cv_macro_f1": metrics_payload["zone_mean_only"]["tuned_cv_f1_macro"],
-                        "test_macro_f1": metrics_payload["zone_mean_only"]["test_metrics"]["f1_macro"],
                     },
                     {
                         "scenario": "zone_mean_plus_variability",
                         "feature_count": len(metrics_payload["zone_mean_plus_variability"]["feature_columns"]),
-                        "best_model": metrics_payload["zone_mean_plus_variability"]["best_model_name"],
-                        "cv_macro_f1": metrics_payload["zone_mean_plus_variability"]["tuned_cv_f1_macro"],
-                        "test_macro_f1": metrics_payload["zone_mean_plus_variability"]["test_metrics"]["f1_macro"],
                     },
                 ]
             )
@@ -450,21 +263,17 @@ def build_notebook() -> nbf.NotebookNode:
         ),
         markdown_cell(
             """
-            ## 7. Perbandingan Model
+            ## 6. Training dan Model Selection
 
-            Section ini menjawab bagian **Performa Model dan Kualitas Kode**.
-
-            Kandidat yang dibandingkan pada pipeline expanded:
-            - Logistic Regression
-            - Random Forest
-            - Extra Trees
-            - LightGBM
-            - CatBoost
-            - XGBoost
+            Pipeline training membandingkan beberapa model tabular dan memilih model berdasarkan `macro F1` pada group-aware cross validation.
             """
         ),
         code_cell(
             """
+            if FIT_MODEL:
+                metrics_payload = train_zone_model_expanded()
+
+            comparison_df = pd.read_csv(COMPARISON_PATH)
             display(
                 comparison_df.sort_values(
                     ["scenario_name", "cv_f1_macro_mean", "test_f1_macro"],
@@ -475,27 +284,28 @@ def build_notebook() -> nbf.NotebookNode:
         ),
         code_cell(
             """
-            best_row = comparison_df.loc[comparison_df["is_final_selected"] == True].copy()
-            display(best_row)
+            selected_scenario = metrics_payload["selected_zone_scenario"]
+            selected_model = metrics_payload["selected_zone_model_name"]
+            selected_metrics = metrics_payload["selected_zone_test_metrics"]
 
-            selected_metrics_df = pd.DataFrame(
+            selected_summary = pd.DataFrame(
                 [
-                    {"metric": "accuracy", "value": selected_metrics["accuracy"]},
-                    {"metric": "precision_macro", "value": selected_metrics["precision_macro"]},
-                    {"metric": "recall_macro", "value": selected_metrics["recall_macro"]},
-                    {"metric": "f1_macro", "value": selected_metrics["f1_macro"]},
-                    {"metric": "f1_weighted", "value": selected_metrics["f1_weighted"]},
-                    {"metric": "cv_f1_macro", "value": metrics_payload["selected_zone_cv_metric_value"]},
+                    {"item": "selected_scenario", "value": selected_scenario},
+                    {"item": "selected_model", "value": selected_model},
+                    {"item": "cv_macro_f1", "value": metrics_payload["selected_zone_cv_metric_value"]},
+                    {"item": "test_accuracy", "value": selected_metrics["accuracy"]},
+                    {"item": "test_macro_precision", "value": selected_metrics["precision_macro"]},
+                    {"item": "test_macro_recall", "value": selected_metrics["recall_macro"]},
+                    {"item": "test_macro_f1", "value": selected_metrics["f1_macro"]},
+                    {"item": "test_weighted_f1", "value": selected_metrics["f1_weighted"]},
                 ]
             )
-            display(selected_metrics_df)
+            display(selected_summary)
             """
         ),
         markdown_cell(
             """
-            ## 8. Evaluasi Final Model Terpilih
-
-            Macro F1 tetap dijadikan acuan utama karena distribusi kelas tidak seimbang dan beberapa kelas hanya memiliki support rendah.
+            ## 7. Evaluasi Model Final
             """
         ),
         code_cell(
@@ -505,7 +315,7 @@ def build_notebook() -> nbf.NotebookNode:
 
             plt.figure(figsize=(10, 7))
             sns.heatmap(matrix, annot=True, fmt="d", cmap="Blues", xticklabels=labels, yticklabels=labels)
-            plt.title("Confusion Matrix Best Expanded Zone Model")
+            plt.title("Confusion Matrix")
             plt.xlabel("Predicted")
             plt.ylabel("Actual")
             plt.xticks(rotation=35, ha="right")
@@ -514,121 +324,46 @@ def build_notebook() -> nbf.NotebookNode:
         ),
         code_cell(
             """
+            report = metrics_payload["selected_zone_classification_report"]
+            per_class_rows = []
+            for label, values in report.items():
+                if isinstance(values, dict) and label not in {"macro avg", "weighted avg"}:
+                    per_class_rows.append(
+                        {
+                            "label": label,
+                            "precision": values["precision"],
+                            "recall": values["recall"],
+                            "f1_score": values["f1-score"],
+                            "support": values["support"],
+                        }
+                    )
+
+            per_class_df = pd.DataFrame(per_class_rows).sort_values(["support", "f1_score"], ascending=[True, False])
             display(per_class_df)
-
-            low_support_df = per_class_df.loc[per_class_df["support"] <= 4].copy()
-            print("Kelas dengan support rendah (<=4 zona pada holdout):")
-            display(low_support_df)
-            """
-        ),
-        markdown_cell(
-            """
-            ## 9. Feature Importance dan Interpretabilitas
-
-            Ini membantu menghubungkan model ke insight yang bisa ditindaklanjuti.
             """
         ),
         code_cell(
             """
-            display(importance_df.head(20))
-
-            plt.figure(figsize=(10, 6))
-            top_imp = importance_df.head(15).sort_values("importance_mean", ascending=True)
-            plt.barh(top_imp["feature"], top_imp["importance_mean"])
-            plt.title("Top 15 Permutation Importance")
-            plt.xlabel("Importance Mean (Macro F1 Drop)")
-            plt.tight_layout()
+            print(REPORT_PATH.read_text(encoding="utf-8"))
             """
         ),
         markdown_cell(
             """
-            ## 10. Pemanfaatan AI dan Azure
-
-            Model prediksi inti tetap model tabular supervised. Di atasnya, project saat ini menambahkan **layer strategic advisor** berbasis Azure OpenAI untuk menerjemahkan output model menjadi rekomendasi tindakan yang lebih operasional.
+            ## 8. Penyimpanan Artifact
             """
         ),
         code_cell(
             """
-            settings = Settings.from_env()
-            azure_summary = pd.DataFrame(
+            artifact_summary = pd.DataFrame(
                 [
-                    {"setting": "azure_openai_enabled", "value": settings.azure_openai_enabled},
-                    {"setting": "azure_openai_endpoint", "value": settings.azure_openai_endpoint},
-                    {"setting": "azure_openai_deployment", "value": settings.azure_openai_deployment},
-                    {"setting": "azure_openai_use_entra_id", "value": settings.azure_openai_use_entra_id},
-                    {"setting": "active_zone_scenario", "value": settings.active_zone_scenario},
-                    {"setting": "zone_model_path", "value": str(settings.zone_model_path.relative_to(settings.project_root))},
+                    {"artifact": "model", "path": str(MODEL_PATH.relative_to(PROJECT_ROOT)), "exists": MODEL_PATH.exists()},
+                    {"artifact": "pipeline", "path": str(PIPELINE_PATH.relative_to(PROJECT_ROOT)), "exists": PIPELINE_PATH.exists()},
+                    {"artifact": "metrics", "path": str(METRICS_PATH.relative_to(PROJECT_ROOT)), "exists": METRICS_PATH.exists()},
+                    {"artifact": "comparison", "path": str(COMPARISON_PATH.relative_to(PROJECT_ROOT)), "exists": COMPARISON_PATH.exists()},
+                    {"artifact": "classification_report", "path": str(REPORT_PATH.relative_to(PROJECT_ROOT)), "exists": REPORT_PATH.exists()},
                 ]
             )
-            display(azure_summary)
-            """
-        ),
-        code_cell(
-            """
-            azure_architecture = pd.DataFrame(
-                [
-                    {
-                        "layer": "Tabular zone classifier",
-                        "implementation": metrics_payload["selected_zone_model_name"],
-                        "artifact": "artifacts/models/best_zone_model_expanded.joblib",
-                    },
-                    {
-                        "layer": "Inference API",
-                        "implementation": "FastAPI /predict/zone",
-                        "artifact": "app/main.py",
-                    },
-                    {
-                        "layer": "Strategic advisor",
-                        "implementation": "FastAPI /insights/zone-strategy + Azure OpenAI fallback",
-                        "artifact": "app/services/strategic_advisor.py",
-                    },
-                ]
-            )
-            display(azure_architecture)
-            """
-        ),
-        markdown_cell(
-            """
-            ## 11. Insight dan Solusi Strategis
-
-            Section ini menautkan output model ke dampak praktis. Notebook memuat scorecard internal dan artefak insight yang bisa langsung dipresentasikan.
-            """
-        ),
-        code_cell(
-            """
-            display(Markdown(SCORECARD_PATH.read_text(encoding="utf-8")))
-            """
-        ),
-        code_cell(
-            """
-            final_summary = pd.DataFrame(
-                [
-                    {"item": "Best Model", "value": metrics_payload["selected_zone_model_name"]},
-                    {"item": "Best Scenario", "value": metrics_payload["selected_zone_scenario"]},
-                    {"item": "Best Accuracy", "value": metrics_payload["selected_zone_test_metrics"]["accuracy"]},
-                    {"item": "Best Macro F1", "value": metrics_payload["selected_zone_test_metrics"]["f1_macro"]},
-                    {"item": "Best Macro Precision", "value": metrics_payload["selected_zone_test_metrics"]["precision_macro"]},
-                    {"item": "Best Macro Recall", "value": metrics_payload["selected_zone_test_metrics"]["recall_macro"]},
-                    {"item": "Selected CV Metric", "value": metrics_payload["selected_zone_cv_metric_value"]},
-                ]
-            )
-            display(final_summary)
-            """
-        ),
-        markdown_cell(
-            """
-            ## 12. Kesimpulan
-
-            Notebook ini menunjukkan bahwa model aktif saat ini:
-            - menggunakan **dataset zona expanded**
-            - memilih model berdasarkan **macro F1** dan **group-aware CV**
-            - mendukung **AI strategic layer** berbasis Azure OpenAI
-            - memiliki artefak evaluasi yang lebih siap presentasi dibanding pipeline sebelumnya
-
-            Keterbatasan yang tetap harus dijelaskan secara jujur:
-            - sebagian zona masih pseudo-zone, belum boundary lapangan Indonesia yang nyata
-            - beberapa kelas masih low-support
-            - integrasi Azure sudah ada, tetapi belum deployment penuh ke layanan Azure produksi
+            display(artifact_summary)
             """
         ),
     ]

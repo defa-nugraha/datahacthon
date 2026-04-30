@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'AgroZonal') }}</title>
+        <title>{{ config('app.name', 'Vera AI') }}</title>
 
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,7 +20,7 @@
                     <a href="/" class="inline-flex flex-col items-center gap-4">
                         <x-application-logo class="h-20 w-20" />
                         <span>
-                            <span class="block text-3xl font-extrabold tracking-tight text-[#154212]">AgroZonal</span>
+                            <span class="block text-3xl font-extrabold tracking-tight text-[#154212]">Vera AI</span>
                             <span class="mt-1 block text-sm font-medium text-slate-500">AI vegetation advisor berbasis zona</span>
                         </span>
                     </a>

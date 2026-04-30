@@ -65,9 +65,7 @@
         <aside class="hidden md:flex w-72 shrink-0 flex-col border-r border-outline bg-surface">
             <div class="px-6 py-6 border-b border-outline">
                 <div class="flex items-center gap-3">
-                    <div class="h-12 w-12 rounded-xl bg-primary text-white flex items-center justify-center shadow-panel">
-                        <span class="material-symbols-outlined">spa</span>
-                    </div>
+                    <x-application-logo class="h-16 w-16" />
                     <div>
                         <div class="text-2xl font-extrabold tracking-tight text-primary">Vera AI</div>
                         <div class="text-sm text-slate-500">Precision Vegetation</div>

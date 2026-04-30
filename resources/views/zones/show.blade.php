@@ -194,6 +194,10 @@
                 </section>
 
                 @if ($latest_advice)
+                    @php
+                        $adviceProvider = $latest_advice->raw_response['provider'] ?? 'local';
+                        $thresholdReason = $latest_advice->raw_response['threshold_context']['trigger_reason'] ?? null;
+                    @endphp
                     <section class="rounded-3xl border border-outline bg-surface p-6 shadow-panel">
                         <div class="flex items-center justify-between gap-3">
                             <div>
@@ -203,6 +207,13 @@
                             <span class="rounded-full px-3 py-1 text-xs font-semibold {{ $latest_advice->urgency_level === 'high' ? 'bg-rose-100 text-rose-700' : ($latest_advice->urgency_level === 'low' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700') }}">
                                 {{ ucfirst($latest_advice->urgency_level) }}
                             </span>
+                        </div>
+                        <div class="mt-3 flex flex-wrap gap-2 text-xs font-semibold text-slate-500">
+                            <span class="rounded-full bg-surface-soft px-3 py-1">Provider: {{ $adviceProvider }}</span>
+                            <span class="rounded-full bg-surface-soft px-3 py-1">Update: {{ optional($latest_advice->generated_at)->diffForHumans() }}</span>
+                            @if ($thresholdReason)
+                                <span class="rounded-full bg-primary-soft px-3 py-1 text-primary">Trigger: {{ str_replace('_', ' ', $thresholdReason) }}</span>
+                            @endif
                         </div>
                         <p class="mt-4 text-sm leading-6 text-slate-600">{{ $latest_advice->advice_summary }}</p>
                         <div class="mt-4 space-y-3">

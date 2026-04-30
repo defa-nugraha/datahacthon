@@ -161,10 +161,10 @@
                                 <span>{{ $zone['active_crop'] ?: 'Belum ada tanaman aktif' }}</span>
                             </div>
                             <div class="mt-5 flex gap-3">
-                                <a href="{{ route('zones.show', $zone['id']) }}" class="flex-1 rounded-2xl border border-outline px-4 py-3 text-center text-sm font-semibold text-primary transition hover:border-primary hover:bg-primary-soft">
+                                <a href="{{ route('zones.show', $zone['slug']) }}" class="flex-1 rounded-2xl border border-outline px-4 py-3 text-center text-sm font-semibold text-primary transition hover:border-primary hover:bg-primary-soft">
                                     View Detail
                                 </a>
-                                <a href="{{ route('zones.monitor', $zone['id']) }}" class="rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-white transition hover:bg-success">
+                                <a href="{{ route('zones.monitor', $zone['slug']) }}" class="rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-white transition hover:bg-success">
                                     Live
                                 </a>
                             </div>

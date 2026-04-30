@@ -17,8 +17,8 @@ class ZoneFeatureShowcaseSeeder extends Seeder
 
     public function run(): void
     {
-        if (app()->environment('production')) {
-            $this->command?->warn('ZoneFeatureShowcaseSeeder dilewati di environment production.');
+        if (app()->environment('production') && ! (bool) env('ALLOW_DEMO_SEEDING_IN_PRODUCTION', false)) {
+            $this->command?->warn('ZoneFeatureShowcaseSeeder dilewati di production. Set ALLOW_DEMO_SEEDING_IN_PRODUCTION=true untuk demo Azure.');
 
             return;
         }

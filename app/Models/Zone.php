@@ -25,6 +25,11 @@ class Zone extends Model
         'sample_target_count' => 'integer',
     ];
 
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
     public function soilData(): HasMany
     {
         return $this->hasMany(SoilData::class);

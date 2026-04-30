@@ -46,7 +46,18 @@
                     <div class="flex-1">
                         <div class="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">AI Adaptive Advice</div>
                         @if ($monitoring['latest_advice'])
+                            @php
+                                $adviceProvider = $monitoring['latest_advice']->raw_response['provider'] ?? 'local';
+                                $thresholdReason = $monitoring['latest_advice']->raw_response['threshold_context']['trigger_reason'] ?? null;
+                            @endphp
                             <p class="mt-3 text-lg font-semibold leading-8 text-slate-900">{{ $monitoring['latest_advice']->advice_summary }}</p>
+                            <div class="mt-3 flex flex-wrap gap-2 text-xs font-semibold text-slate-500">
+                                <span class="rounded-full bg-surface-soft px-3 py-1">Provider: {{ $adviceProvider }}</span>
+                                <span class="rounded-full bg-surface-soft px-3 py-1">Update: {{ optional($monitoring['latest_advice']->generated_at)->diffForHumans() }}</span>
+                                @if ($thresholdReason)
+                                    <span class="rounded-full bg-primary-soft px-3 py-1 text-primary">Trigger: {{ str_replace('_', ' ', $thresholdReason) }}</span>
+                                @endif
+                            </div>
                             <div class="mt-4 flex flex-wrap gap-3">
                                 @foreach (($monitoring['latest_advice']->recommendations ?? []) as $recommendation)
                                     <div class="rounded-2xl border border-outline bg-surface-soft px-4 py-3 text-sm">

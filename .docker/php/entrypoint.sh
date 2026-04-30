@@ -56,6 +56,14 @@ if [ ! -f vendor/autoload.php ]; then
     fi
 fi
 
+if [ -f package.json ] && [ ! -f public/build/manifest.json ]; then
+    if [ ! -d node_modules ] || [ -z "$(ls -A node_modules 2>/dev/null)" ]; then
+        npm install --ignore-scripts
+    fi
+
+    npm run build
+fi
+
 if [ -f artisan ] && [ -f .env ] && grep -q '^APP_KEY=$' .env; then
     php artisan key:generate --force --ansi || true
 fi

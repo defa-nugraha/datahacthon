@@ -80,9 +80,21 @@
                         </td>
                         <td class="px-6 py-5 text-sm text-slate-500">{{ $device->last_sync ? $device->last_sync->format('Y-m-d H:i:s') : 'Never' }}</td>
                         <td class="px-6 py-5 text-right">
-                            <button class="text-slate-400 hover:text-primary transition">
-                                <span class="material-symbols-outlined">settings_suggest</span>
-                            </button>
+                            <form
+                                action="{{ route('devices.destroy', $device) }}"
+                                method="POST"
+                                data-confirm-delete
+                                data-confirm-title="Hapus device {{ $device->name }}?"
+                                data-confirm-text="Koneksi device ini akan dihapus dari daftar monitoring."
+                                data-confirm-button="Ya, hapus device"
+                                class="inline-flex"
+                            >
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-slate-400 hover:text-rose-600 transition" aria-label="Hapus device {{ $device->name }}">
+                                    <span class="material-symbols-outlined">delete</span>
+                                </button>
+                            </form>
                         </td>
                     </tr>
                     @endforeach

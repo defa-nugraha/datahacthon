@@ -71,7 +71,7 @@
                                         <span class="material-symbols-outlined">edit</span>
                                     </button>
                                     <form
-                                        action="{{ route('zones.destroy', $zone['id']) }}"
+                                        action="{{ route('zones.destroy', $zone['slug']) }}"
                                         method="POST"
                                         data-confirm-delete
                                         data-confirm-title="Hapus zona {{ $zone['name'] }}?"
@@ -129,14 +129,14 @@
                         </div>
 
                         <div class="flex flex-wrap items-center justify-between gap-3 border-t border-outline bg-surface-soft px-6 py-4">
-                            <a href="{{ route('zones.show', ['zone' => $zone['id'], 'modal' => 'sampling-create-modal']) }}" class="text-sm font-semibold text-danger hover:text-rose-700">
+                            <a href="{{ route('zones.show', ['zone' => $zone['slug'], 'modal' => 'sampling-create-modal']) }}" class="text-sm font-semibold text-danger hover:text-rose-700">
                                 Tambah Sampling
                             </a>
                             <div class="flex flex-wrap gap-3">
-                                <a href="{{ route('zones.monitor', $zone['id']) }}" class="rounded-2xl border border-outline px-4 py-2 text-sm font-semibold text-primary transition hover:border-primary hover:bg-primary-soft">
+                                <a href="{{ route('zones.monitor', $zone['slug']) }}" class="rounded-2xl border border-outline px-4 py-2 text-sm font-semibold text-primary transition hover:border-primary hover:bg-primary-soft">
                                     Live
                                 </a>
-                                <a href="{{ route('zones.show', $zone['id']) }}" class="rounded-2xl bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-success">
+                                <a href="{{ route('zones.show', $zone['slug']) }}" class="rounded-2xl bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-success">
                                     View Detail
                                 </a>
                             </div>
@@ -149,7 +149,7 @@
                         :description="'Perbarui identitas dan target sampling untuk '.$zone['name'].'.'"
                         max-width="max-w-2xl"
                     >
-                        <form action="{{ route('zones.update', $zone['id']) }}" method="POST" class="grid gap-4 sm:grid-cols-2">
+                        <form action="{{ route('zones.update', $zone['slug']) }}" method="POST" class="grid gap-4 sm:grid-cols-2">
                             @csrf
                             @method('PUT')
                             <input type="hidden" name="_open_modal" value="{{ $editModalId }}">

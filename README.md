@@ -129,6 +129,40 @@ Atau lokal:
 php artisan schedule:work
 ```
 
+## Azure Docker
+
+Deployment Azure dengan Laravel + FastAPI, SQLite, migration otomatis, dan seeder otomatis tersedia di:
+
+- [`docker-compose.azure.yml`](docker-compose.azure.yml)
+- [`.env.azure.example`](.env.azure.example)
+- [`README_AZURE_DOCKER.md`](README_AZURE_DOCKER.md)
+
+Jalankan lokal:
+
+```bash
+cp .env.azure.example .env.azure
+docker compose --env-file .env.azure -f docker-compose.azure.yml up --build -d
+```
+
+Adaptive advice memakai threshold di Laravel sebelum request ke Azure OpenAI. Scheduler hanya mengirim histori 1 jam terakhir jika belum ada advice, ada kondisi kritis, atau perubahan pH/N/P/K/kelembapan melewati ambang konfigurasi. Refresh manual dari layar monitoring tetap memaksa request baru.
+
+Konfigurasi utama:
+
+```bash
+AI_ADVISOR_THRESHOLD_ENABLED=true
+AI_ADVISOR_MIN_INTERVAL_MINUTES=60
+AI_ADVISOR_THRESHOLD_PH_DELTA=0.25
+AI_ADVISOR_THRESHOLD_N_DELTA=8
+AI_ADVISOR_THRESHOLD_P_DELTA=5
+AI_ADVISOR_THRESHOLD_K_DELTA=8
+AI_ADVISOR_THRESHOLD_MOISTURE_DELTA=8
+
+AZURE_OPENAI_ENABLED=true
+AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com
+AZURE_OPENAI_DEPLOYMENT=your-deployment-name
+AZURE_OPENAI_API_KEY=your-key
+```
+
 ## Contributing
 
 Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).

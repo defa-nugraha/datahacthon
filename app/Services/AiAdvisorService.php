@@ -47,14 +47,29 @@ class AiAdvisorService
     public function generateCareAdvice(Zone $zone, Collection $history, bool $force = false): ?ZoneCareAdvice
     {
         $latestAdvice = $zone->careAdvices()->first();
+        $minIntervalMinutes = (int) config('services.ai_advisor.care_threshold.min_interval_minutes', 60);
 
-        if (! $force && $latestAdvice && $latestAdvice->generated_at?->gte(now()->subHour())) {
+        if (! $force && $latestAdvice && $latestAdvice->generated_at?->gte(now()->subMinutes($minIntervalMinutes))) {
             return $latestAdvice;
         }
 
         if ($history->isEmpty() || blank($zone->active_crop)) {
             return $latestAdvice;
         }
+
+        $snapshot = $this->analytics->aggregateSamples($history);
+        [$shouldRequest, $triggerReason, $deltas] = $this->shouldRequestCareAdvice($history, $snapshot, $latestAdvice, $force);
+
+        if (! $shouldRequest) {
+            return $latestAdvice;
+        }
+
+        $thresholdContext = [
+            'trigger_reason' => $triggerReason,
+            'deltas' => $deltas,
+            'threshold_enabled' => (bool) config('services.ai_advisor.care_threshold.enabled', true),
+            'min_history_points' => (int) config('services.ai_advisor.care_threshold.min_history_points', 2),
+        ];
 
         $payload = [
             'zone_id' => (string) $zone->id,
@@ -71,14 +86,21 @@ class AiAdvisorService
                     'soil_moisture' => $sample->soil_moisture !== null ? (float) $sample->soil_moisture : null,
                 ];
             })->values()->all(),
-            'current_snapshot' => $this->analytics->aggregateSamples($history),
+            'current_snapshot' => $snapshot,
+            'threshold_context' => $thresholdContext,
         ];
 
         try {
             $response = $this->client()->post('/advice/care', $payload)->throw()->json();
+
+            if (! $this->isValidCareAdviceResponse($response)) {
+                $response = $this->fallbackCareAdvice($zone, $history, 'Respons AI tidak lengkap.');
+            }
         } catch (\Throwable $exception) {
             $response = $this->fallbackCareAdvice($zone, $history, $exception->getMessage());
         }
+
+        $response['threshold_context'] = $thresholdContext;
 
         return ZoneCareAdvice::create([
             'zone_id' => $zone->id,
@@ -86,7 +108,7 @@ class AiAdvisorService
             'advice_summary' => $response['summary'],
             'urgency_level' => $response['urgency'],
             'recommendations' => $response['recommendations'],
-            'nutrient_snapshot' => $payload['current_snapshot'],
+            'nutrient_snapshot' => $snapshot,
             'raw_response' => $response,
             'generated_at' => now(),
             'time_window_minutes' => 60,
@@ -130,6 +152,13 @@ class AiAdvisorService
             'warnings' => $response['warnings'] ?? [],
             'model_info' => $response['model_info'] ?? ['model_name' => 'external-zone-model'],
         ];
+    }
+
+    protected function isValidCareAdviceResponse(mixed $response): bool
+    {
+        return is_array($response)
+            && isset($response['summary'], $response['urgency'], $response['recommendations'])
+            && is_array($response['recommendations']);
     }
 
     protected function fallbackZonePrediction(Zone $zone, Collection $samples, ?string $error = null): array
@@ -246,8 +275,100 @@ class AiAdvisorService
             'urgency' => $urgency,
             'recommendations' => $recommendations,
             'provider' => 'local-fallback',
-            'warning' => $error ? 'Vertex AI tidak tersedia: '.$error : null,
+            'warning' => $error ? 'Azure OpenAI tidak tersedia: '.$error : null,
         ];
+    }
+
+    protected function shouldRequestCareAdvice(Collection $history, array $snapshot, ?ZoneCareAdvice $latestAdvice, bool $force): array
+    {
+        if ($force) {
+            return [true, 'manual_refresh', []];
+        }
+
+        if (! (bool) config('services.ai_advisor.care_threshold.enabled', true)) {
+            return [true, 'threshold_disabled', []];
+        }
+
+        $criticalReason = $this->criticalConditionReason($snapshot);
+        $deltas = $this->nutrientDeltaSummary($snapshot, $latestAdvice?->nutrient_snapshot ?? []);
+
+        if ($criticalReason !== null) {
+            return [true, $criticalReason, $deltas];
+        }
+
+        $minPoints = (int) config('services.ai_advisor.care_threshold.min_history_points', 2);
+        if ($history->count() < $minPoints) {
+            return [false, 'insufficient_history_points', $deltas];
+        }
+
+        if (! $latestAdvice || empty($latestAdvice->nutrient_snapshot)) {
+            return [true, 'no_previous_advice', $deltas];
+        }
+
+        $thresholds = [
+            'ph' => (float) config('services.ai_advisor.care_threshold.ph_delta', 0.25),
+            'nitrogen' => (float) config('services.ai_advisor.care_threshold.nitrogen_delta', 8),
+            'phosphorus' => (float) config('services.ai_advisor.care_threshold.phosphorus_delta', 5),
+            'potassium' => (float) config('services.ai_advisor.care_threshold.potassium_delta', 8),
+            'soil_moisture' => (float) config('services.ai_advisor.care_threshold.soil_moisture_delta', 8),
+        ];
+
+        foreach ($thresholds as $metric => $threshold) {
+            if (($deltas[$metric] ?? 0) >= $threshold) {
+                return [true, "significant_{$metric}_change", $deltas];
+            }
+        }
+
+        return [false, 'below_threshold', $deltas];
+    }
+
+    protected function criticalConditionReason(array $snapshot): ?string
+    {
+        $ph = $this->extractMetricMean($snapshot, 'ph');
+        $phosphorus = $this->extractMetricMean($snapshot, 'phosphorus');
+        $moisture = $this->extractMetricMean($snapshot, 'soil_moisture');
+
+        if ($ph !== null && $ph < (float) config('services.ai_advisor.care_threshold.critical_ph_low', 5.8)) {
+            return 'critical_low_ph';
+        }
+
+        if ($ph !== null && $ph > (float) config('services.ai_advisor.care_threshold.critical_ph_high', 7.5)) {
+            return 'critical_high_ph';
+        }
+
+        if ($phosphorus !== null && $phosphorus < (float) config('services.ai_advisor.care_threshold.critical_phosphorus_low', 18)) {
+            return 'critical_low_phosphorus';
+        }
+
+        if ($moisture !== null && $moisture < (float) config('services.ai_advisor.care_threshold.critical_soil_moisture_low', 25)) {
+            return 'critical_low_soil_moisture';
+        }
+
+        return null;
+    }
+
+    protected function nutrientDeltaSummary(array $currentSnapshot, array $previousSnapshot): array
+    {
+        $metrics = ['ph', 'nitrogen', 'phosphorus', 'potassium', 'soil_moisture'];
+        $deltas = [];
+
+        foreach ($metrics as $metric) {
+            $current = $this->extractMetricMean($currentSnapshot, $metric);
+            $previous = $this->extractMetricMean($previousSnapshot, $metric);
+
+            $deltas[$metric] = ($current !== null && $previous !== null)
+                ? round(abs($current - $previous), 3)
+                : 0.0;
+        }
+
+        return $deltas;
+    }
+
+    protected function extractMetricMean(array $snapshot, string $metric): ?float
+    {
+        $value = $snapshot[$metric]['mean'] ?? null;
+
+        return is_numeric($value) ? (float) $value : null;
     }
 
     protected function client(): PendingRequest

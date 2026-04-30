@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Device;
 use App\Models\SoilData;
 use App\Models\Zone;
 use App\Services\AiAdvisorService;
@@ -272,5 +273,12 @@ class SoilDataController extends Controller
         ]);
 
         return redirect()->route('devices.index')->with('success', 'Device berhasil didaftarkan!');
+    }
+
+    public function destroyDevice(Device $device): RedirectResponse
+    {
+        $device->delete();
+
+        return redirect()->route('devices.index')->with('success', 'Device berhasil dihapus.');
     }
 }

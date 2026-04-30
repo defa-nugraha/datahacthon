@@ -25,23 +25,22 @@ Route::middleware('auth')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('/zones', [SoilDataController::class, 'zones'])->name('zones.index');
 
-    // 2. Simpan Zona Baru (Ini yang tadi bikin error)
     Route::post('/zones', [SoilDataController::class, 'storeZone'])->name('zones.store');
 
-    // 3. Detail, Monitor, dan Hapus Zona
-    Route::get('/zones/{zone:slug}', [SoilDataController::class, 'showZone'])->name('zones.show');
+    Route::post('/zones/{zone:slug}/analyze', [SoilDataController::class, 'analyzeZone'])->name('zones.analyze');
+    Route::post('/zones/{zone:slug}/plant/start', [SoilDataController::class, 'startPlanting'])->name('zones.plant.start');
+    Route::post('/zones/{zone:slug}/plant/reset', [SoilDataController::class, 'resetPlanting'])->name('zones.plant.reset');
+    Route::post('/zones/{zone:slug}/care-advice/refresh', [SoilDataController::class, 'refreshCareAdvice'])->name('zones.care.refresh');
     Route::get('/zones/{zone:slug}/monitor', [SoilDataController::class, 'monitorZone'])->name('zones.monitor');
-    Route::put('/zones/{zone:slug}', [SoilDataController::class, 'updateZone'])->name('zones.update');
-    Route::delete('/zones/{zone:slug}', [SoilDataController::class, 'destroyZone'])->name('zones.destroy');
 
-    // 4. Input Sampling (Form & Simpan)
     Route::get('/zones/{zone:slug}/sampling', [SoilDataController::class, 'samplingForm'])->name('zones.sampling');
     Route::post('/zones/{zone:slug}/sampling', [SoilDataController::class, 'storeSampling'])->name('zones.sampling.store');
+    Route::get('/zones/{zone:slug}', [SoilDataController::class, 'showZone'])->name('zones.show');
+    Route::put('/zones/{zone:slug}', [SoilDataController::class, 'updateZone'])->name('zones.update');
+    Route::delete('/zones/{zone:slug}', [SoilDataController::class, 'destroyZone'])->name('zones.destroy');
     
-    // 5. History / Laporan
     Route::get('/history', [SoilDataController::class, 'history'])->name('history');
 
-    // Rute untuk Manajemen Device IoT
     Route::get('/devices', [SoilDataController::class, 'devices'])->name('devices.index');
     Route::post('/devices', [SoilDataController::class, 'storeDevice'])->name('devices.store');
     Route::delete('/devices/{device}', [SoilDataController::class, 'destroyDevice'])->name('devices.destroy');

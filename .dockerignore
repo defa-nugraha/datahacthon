@@ -10,6 +10,7 @@ storage/framework/sessions/*
 storage/framework/views/*
 public/build
 public/hot
+database/*.sqlite
 catboost_info
 .pytest_cache
 __pycache__

@@ -1,0 +1,69 @@
+services:
+  laravel:
+    build:
+      context: .
+      dockerfile: .docker/azure/laravel/Dockerfile
+      args:
+        PHP_VERSION: ${PHP_VERSION:-8.4}
+        NODE_MAJOR: ${NODE_MAJOR:-22}
+        COMPOSER_VERSION: ${COMPOSER_VERSION:-2.8}
+    image: ${AZURE_LARAVEL_IMAGE:-agrozonal-laravel:azure}
+    environment:
+      APP_NAME: ${APP_NAME:-AgroZonal}
+      APP_ENV: ${APP_ENV:-production}
+      APP_DEBUG: ${APP_DEBUG:-false}
+      APP_KEY: ${APP_KEY:-}
+      APP_URL: ${APP_URL:-http://localhost:8080}
+      LOG_CHANNEL: ${LOG_CHANNEL:-stderr}
+      SESSION_DRIVER: ${SESSION_DRIVER:-database}
+      CACHE_STORE: ${CACHE_STORE:-database}
+      QUEUE_CONNECTION: ${QUEUE_CONNECTION:-database}
+      DB_CONNECTION: sqlite
+      DB_DATABASE: ${DB_DATABASE:-/var/www/html/database/database.sqlite}
+      RUN_MIGRATIONS: ${RUN_MIGRATIONS:-true}
+      RUN_SEEDERS: ${RUN_SEEDERS:-true}
+      ALLOW_DEMO_SEEDING_IN_PRODUCTION: ${ALLOW_DEMO_SEEDING_IN_PRODUCTION:-true}
+      RUN_SCHEDULER: ${RUN_SCHEDULER:-true}
+      AI_ADVISOR_BASE_URL: ${AI_ADVISOR_BASE_URL:-http://fastapi:8001}
+      AI_ADVISOR_TIMEOUT: ${AI_ADVISOR_TIMEOUT:-20}
+      AI_ADVISOR_THRESHOLD_ENABLED: ${AI_ADVISOR_THRESHOLD_ENABLED:-true}
+      AI_ADVISOR_THRESHOLD_MIN_HISTORY_POINTS: ${AI_ADVISOR_THRESHOLD_MIN_HISTORY_POINTS:-2}
+      AI_ADVISOR_MIN_INTERVAL_MINUTES: ${AI_ADVISOR_MIN_INTERVAL_MINUTES:-60}
+      AI_ADVISOR_THRESHOLD_PH_DELTA: ${AI_ADVISOR_THRESHOLD_PH_DELTA:-0.25}
+      AI_ADVISOR_THRESHOLD_N_DELTA: ${AI_ADVISOR_THRESHOLD_N_DELTA:-8}
+      AI_ADVISOR_THRESHOLD_P_DELTA: ${AI_ADVISOR_THRESHOLD_P_DELTA:-5}
+      AI_ADVISOR_THRESHOLD_K_DELTA: ${AI_ADVISOR_THRESHOLD_K_DELTA:-8}
+      AI_ADVISOR_THRESHOLD_MOISTURE_DELTA: ${AI_ADVISOR_THRESHOLD_MOISTURE_DELTA:-8}
+      AI_ADVISOR_CRITICAL_PH_LOW: ${AI_ADVISOR_CRITICAL_PH_LOW:-5.8}
+      AI_ADVISOR_CRITICAL_PH_HIGH: ${AI_ADVISOR_CRITICAL_PH_HIGH:-7.5}
+      AI_ADVISOR_CRITICAL_P_LOW: ${AI_ADVISOR_CRITICAL_P_LOW:-18}
+      AI_ADVISOR_CRITICAL_MOISTURE_LOW: ${AI_ADVISOR_CRITICAL_MOISTURE_LOW:-25}
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    volumes:
+      - azure_sqlite_data:/var/www/html/database
+      - azure_storage_data:/var/www/html/storage
+    depends_on:
+      - fastapi
+    restart: unless-stopped
+
+  fastapi:
+    build:
+      context: .
+      dockerfile: python_service/Dockerfile
+    image: ${AZURE_FASTAPI_IMAGE:-agrozonal-fastapi:azure}
+    environment:
+      AZURE_OPENAI_ENABLED: ${AZURE_OPENAI_ENABLED:-false}
+      AZURE_OPENAI_ENDPOINT: ${AZURE_OPENAI_ENDPOINT:-}
+      AZURE_OPENAI_DEPLOYMENT: ${AZURE_OPENAI_DEPLOYMENT:-}
+      AZURE_OPENAI_API_KEY: ${AZURE_OPENAI_API_KEY:-}
+      AZURE_OPENAI_USE_ENTRA_ID: ${AZURE_OPENAI_USE_ENTRA_ID:-false}
+      AZURE_OPENAI_TEMPERATURE: ${AZURE_OPENAI_TEMPERATURE:-0.2}
+      AZURE_OPENAI_MAX_OUTPUT_TOKENS: ${AZURE_OPENAI_MAX_OUTPUT_TOKENS:-900}
+    ports:
+      - "${AI_SERVICE_PORT:-8001}:8001"
+    restart: unless-stopped
+
+volumes:
+  azure_sqlite_data:
+  azure_storage_data:

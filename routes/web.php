@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SoilDataController;
 use Illuminate\Support\Facades\Route;
@@ -22,6 +23,11 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', [AdminController::class, 'index'])->name('dashboard');
+    Route::patch('/users/{user}/role', [AdminController::class, 'updateUserRole'])->name('users.role.update');
+});
+
 Route::middleware('auth')->group(function () {
     Route::get('/zones', [SoilDataController::class, 'zones'])->name('zones.index');
 
@@ -41,9 +47,11 @@ Route::middleware('auth')->group(function () {
     
     Route::get('/history', [SoilDataController::class, 'history'])->name('history');
 
-    Route::get('/devices', [SoilDataController::class, 'devices'])->name('devices.index');
-    Route::post('/devices', [SoilDataController::class, 'storeDevice'])->name('devices.store');
-    Route::delete('/devices/{device}', [SoilDataController::class, 'destroyDevice'])->name('devices.destroy');
+    Route::middleware('admin')->group(function () {
+        Route::get('/devices', [SoilDataController::class, 'devices'])->name('devices.index');
+        Route::post('/devices', [SoilDataController::class, 'storeDevice'])->name('devices.store');
+        Route::delete('/devices/{device}', [SoilDataController::class, 'destroyDevice'])->name('devices.destroy');
+    });
 });
 
 require __DIR__.'/auth.php';

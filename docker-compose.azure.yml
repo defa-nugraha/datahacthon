@@ -7,15 +7,16 @@ services:
         PHP_VERSION: ${PHP_VERSION:-8.4}
         NODE_MAJOR: ${NODE_MAJOR:-22}
         COMPOSER_VERSION: ${COMPOSER_VERSION:-2.8}
-    image: ${AZURE_LARAVEL_IMAGE:-agrozonal-laravel:azure}
+    image: ${AZURE_LARAVEL_IMAGE:-verai-laravel:azure}
     environment:
-      APP_NAME: ${APP_NAME:-AgroZonal}
+      APP_NAME: ${APP_NAME:-Vera AI}
       APP_ENV: ${APP_ENV:-production}
       APP_DEBUG: ${APP_DEBUG:-false}
       APP_KEY: ${APP_KEY:-}
       APP_URL: ${APP_URL:-http://localhost:8080}
       LOG_CHANNEL: ${LOG_CHANNEL:-stderr}
       SESSION_DRIVER: ${SESSION_DRIVER:-database}
+      SESSION_SECURE_COOKIE: ${SESSION_SECURE_COOKIE:-true}
       CACHE_STORE: ${CACHE_STORE:-database}
       QUEUE_CONNECTION: ${QUEUE_CONNECTION:-database}
       DB_CONNECTION: sqlite
@@ -51,7 +52,7 @@ services:
     build:
       context: .
       dockerfile: python_service/Dockerfile
-    image: ${AZURE_FASTAPI_IMAGE:-agrozonal-fastapi:azure}
+    image: ${AZURE_FASTAPI_IMAGE:-verai-fastapi:azure}
     environment:
       AZURE_OPENAI_ENABLED: ${AZURE_OPENAI_ENABLED:-false}
       AZURE_OPENAI_ENDPOINT: ${AZURE_OPENAI_ENDPOINT:-}

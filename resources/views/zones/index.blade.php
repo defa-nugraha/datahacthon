@@ -4,7 +4,7 @@
 
 @section('content')
     <div class="mx-auto max-w-7xl space-y-6">
-        <div class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+        <div class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between" data-tour="zones-header">
             <div>
                 <p class="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">Field Zones</p>
                 <h1 class="mt-2 text-4xl font-extrabold tracking-tight text-slate-900">Kelola zona tanam aktif</h1>
@@ -19,6 +19,7 @@
                 <button
                     type="button"
                     data-modal-open="zone-create-modal"
+                    data-tour="add-zone"
                     class="rounded-2xl bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-success"
                 >
                     Tambah Zona
@@ -36,13 +37,14 @@
                 <button
                     type="button"
                     data-modal-open="zone-create-modal"
+                    data-tour="add-zone"
                     class="mt-6 rounded-2xl bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-success"
                 >
                     Buat Zona Pertama
                 </button>
             </div>
         @else
-            <div class="grid gap-5 lg:grid-cols-2 2xl:grid-cols-3">
+            <div class="grid gap-5 lg:grid-cols-2 2xl:grid-cols-3" data-tour="zone-list">
                 @foreach ($zones as $zone)
                     @php
                         $statusClasses = match($zone['status']['tone']) {
@@ -53,7 +55,7 @@
                         $editModalId = 'zone-edit-modal-'.$zone['id'];
                         $isEditModalActive = old('_open_modal') === $editModalId;
                     @endphp
-                    <article class="overflow-hidden rounded-3xl border border-outline bg-surface shadow-panel">
+                    <article class="overflow-hidden rounded-3xl border border-outline bg-surface shadow-panel" @if($loop->first) data-tour="zone-card" @endif>
                         <div class="p-6">
                             <div class="flex items-start justify-between gap-3">
                                 <div class="min-w-0">
@@ -129,14 +131,14 @@
                         </div>
 
                         <div class="flex flex-wrap items-center justify-between gap-3 border-t border-outline bg-surface-soft px-6 py-4">
-                            <a href="{{ route('zones.show', ['zone' => $zone['slug'], 'modal' => 'sampling-create-modal']) }}" class="text-sm font-semibold text-danger hover:text-rose-700">
+                            <a href="{{ route('zones.show', ['zone' => $zone['slug'], 'modal' => 'sampling-create-modal']) }}" @if($loop->first) data-tour="add-sampling" @endif class="text-sm font-semibold text-danger hover:text-rose-700">
                                 Tambah Sampling
                             </a>
                             <div class="flex flex-wrap gap-3">
                                 <a href="{{ route('zones.monitor', $zone['slug']) }}" class="rounded-2xl border border-outline px-4 py-2 text-sm font-semibold text-primary transition hover:border-primary hover:bg-primary-soft">
                                     Live
                                 </a>
-                                <a href="{{ route('zones.show', $zone['slug']) }}" class="rounded-2xl bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-success">
+                                <a href="{{ route('zones.show', $zone['slug']) }}" @if($loop->first) data-tour="zone-detail" @endif class="rounded-2xl bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-success">
                                     View Detail
                                 </a>
                             </div>

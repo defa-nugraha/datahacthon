@@ -17,7 +17,7 @@
     @endphp
 
     <div class="mx-auto max-w-7xl space-y-6">
-        <div class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+        <div class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between" data-tour="zone-detail-header">
             <div>
                 <div class="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">Field Zones / Detail</div>
                 <h1 class="mt-2 text-4xl font-extrabold tracking-tight text-slate-900">{{ $zone->name }}</h1>
@@ -37,6 +37,7 @@
                 <button
                     type="button"
                     data-modal-open="{{ $samplingModalId }}"
+                    data-tour="detail-add-sampling"
                     class="rounded-2xl border border-outline px-5 py-3 text-sm font-semibold text-primary transition hover:border-primary hover:bg-primary-soft"
                 >
                     Tambah Sampling
@@ -50,7 +51,7 @@
                 </button>
                 <form action="{{ route('zones.analyze', $zone) }}" method="POST">
                     @csrf
-                    <button type="submit" class="rounded-2xl bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-success">
+                    <button type="submit" data-tour="run-ai-analysis" class="rounded-2xl bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-success">
                         Jalankan Analisis AI
                     </button>
                 </form>
@@ -89,7 +90,7 @@
             </div>
         @endif
 
-        <div class="grid gap-5 xl:grid-cols-3">
+        <div class="grid gap-5 xl:grid-cols-3" data-tour="zone-health-cards">
             <div class="rounded-3xl border border-outline bg-surface p-6 shadow-panel">
                 <div class="flex items-start justify-between gap-3">
                     <div>
@@ -198,7 +199,7 @@
                         $adviceProvider = $latest_advice->raw_response['provider'] ?? 'local';
                         $thresholdReason = $latest_advice->raw_response['threshold_context']['trigger_reason'] ?? null;
                     @endphp
-                    <section class="rounded-3xl border border-outline bg-surface p-6 shadow-panel">
+                    <section class="rounded-3xl border border-outline bg-surface p-6 shadow-panel" data-tour="adaptive-advice">
                         <div class="flex items-center justify-between gap-3">
                             <div>
                                 <div class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">AI Adaptive Advice</div>

@@ -18,7 +18,7 @@
                 id="email"
                 type="email"
                 name="email"
-                value="{{ old('email', 'petani@agrozonal.test') }}"
+                value="{{ old('email', 'petani@veraai.test') }}"
                 required
                 autofocus
                 autocomplete="username"
@@ -61,7 +61,7 @@
 
     <div class="mt-6 rounded-2xl border border-[#d8d9d2] bg-[#f4f4ee] px-4 py-3 text-sm text-slate-600">
         <div class="font-semibold text-slate-900">Akun demo</div>
-        <div class="mt-1 font-mono text-xs">petani@agrozonal.test / password</div>
-        <div class="mt-1 font-mono text-xs">admin@agrozonal.test / password</div>
+        <div class="mt-1 font-mono text-xs">petani@veraai.test / password</div>
+        <div class="mt-1 font-mono text-xs">admin@veraai.test / password</div>
     </div>
 </x-guest-layout>

@@ -34,7 +34,7 @@ class InterfaceNavigationTest extends TestCase
         $this->get(route('zones.show', $zone))->assertOk()->assertSee('Zona Alpha');
         $this->get(route('zones.monitor', $zone))->assertOk()->assertSee('Zona Alpha');
         $this->get(route('history'))->assertOk();
-        $this->get(route('devices.index'))->assertOk()->assertSee('Register New Device');
+        $this->get(route('devices.index'))->assertForbidden();
         $this->get(route('profile.edit'))->assertOk();
     }
 
@@ -145,7 +145,7 @@ class InterfaceNavigationTest extends TestCase
 
     public function test_device_management_buttons_work(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['role' => 'admin']);
 
         $this->actingAs($user);
 
@@ -168,6 +168,78 @@ class InterfaceNavigationTest extends TestCase
         $this->assertDatabaseMissing('devices', [
             'id' => $device->id,
         ]);
+    }
+
+    public function test_admin_console_is_separated_from_farmer_pages(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $farmer = User::factory()->create(['role' => 'farmer']);
+        $zone = $this->createZoneWithSamples();
+
+        $this->actingAs($farmer)
+            ->get(route('admin.dashboard'))
+            ->assertForbidden();
+
+        $this->actingAs($admin)
+            ->get(route('admin.dashboard'))
+            ->assertOk()
+            ->assertSee('Admin Console')
+            ->assertSee($zone->name)
+            ->assertSee($farmer->email);
+
+        $this->patch(route('admin.users.role.update', $farmer), [
+            'role' => 'admin',
+        ])->assertRedirect();
+
+        $this->assertSame('admin', $farmer->fresh()->role);
+    }
+
+    public function test_onboarding_tour_markup_is_available_for_farmer_pages(): void
+    {
+        $user = User::factory()->create(['role' => 'farmer']);
+        $zone = $this->createZoneWithSamples();
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('id="veraTourRoot"', false)
+            ->assertSee('vera-ai-onboarding-v3', false)
+            ->assertSee("get('tour') === '1'", false)
+            ->assertSee('data-tour-restart', false)
+            ->assertSee('data-tour="navigation"', false)
+            ->assertSee('data-tour="dashboard-overview"', false)
+            ->assertSee('data-tour="zone-metrics"', false)
+            ->assertSee('data-tour="soil-trend"', false);
+
+        $this->get(route('zones.index'))
+            ->assertOk()
+            ->assertSee('data-tour="zones-header"', false)
+            ->assertSee('data-tour="add-zone"', false)
+            ->assertSee('data-tour="zone-list"', false);
+
+        $this->get(route('zones.show', $zone))
+            ->assertOk()
+            ->assertSee('data-tour="zone-detail-header"', false)
+            ->assertSee('data-tour="detail-add-sampling"', false)
+            ->assertSee('data-tour="run-ai-analysis"', false)
+            ->assertSee('data-tour="zone-health-cards"', false);
+    }
+
+    public function test_onboarding_tour_markup_is_available_for_admin_pages(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $this->createZoneWithSamples();
+
+        $this->actingAs($admin)
+            ->get(route('admin.dashboard'))
+            ->assertOk()
+            ->assertSee('id="veraTourRoot"', false)
+            ->assertSee('data-tour-restart', false)
+            ->assertSee('data-tour="admin-overview"', false)
+            ->assertSee('data-tour="admin-metrics"', false)
+            ->assertSee('data-tour="user-management"', false)
+            ->assertSee('data-tour="device-summary"', false)
+            ->assertSee('data-tour="zone-readiness"', false);
     }
 
     private function createZoneWithSamples(): Zone

@@ -22,24 +22,27 @@ class DatabaseSeeder extends Seeder
             [
                 'name' => 'Test User',
                 'password' => Hash::make('password'),
+                'role' => 'farmer',
                 'email_verified_at' => now(),
             ]
         );
 
         User::query()->updateOrCreate(
-            ['email' => 'petani@agrozonal.test'],
+            ['email' => 'petani@veraai.test'],
             [
                 'name' => 'Petani Demo',
                 'password' => Hash::make('password'),
+                'role' => 'farmer',
                 'email_verified_at' => now(),
             ]
         );
 
         User::query()->updateOrCreate(
-            ['email' => 'admin@agrozonal.test'],
+            ['email' => 'admin@veraai.test'],
             [
-                'name' => 'Admin AgroZonal',
+                'name' => 'Admin Vera AI',
                 'password' => Hash::make('password'),
+                'role' => 'admin',
                 'email_verified_at' => now(),
             ]
         );

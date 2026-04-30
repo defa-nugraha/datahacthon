@@ -1,6 +1,6 @@
 <x-app-layout>
     <div class="mx-auto max-w-7xl space-y-6">
-        <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between" data-tour="dashboard-overview">
             <div>
                 <p class="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">Operations Overview</p>
                 <h1 class="mt-2 text-4xl font-extrabold tracking-tight text-slate-900">Pemantauan zona dan rekomendasi AI</h1>
@@ -14,7 +14,7 @@
             </div>
         </div>
 
-        <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4" data-tour="zone-metrics">
             <div class="rounded-3xl border border-outline bg-surface p-6 shadow-panel">
                 <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-surface-soft text-slate-600">
                     <span class="material-symbols-outlined">layers</span>
@@ -52,7 +52,7 @@
         </div>
 
         <div class="grid gap-6 xl:grid-cols-[2fr,1fr]">
-            <section class="rounded-3xl border border-outline bg-surface p-6 shadow-panel">
+            <section class="rounded-3xl border border-outline bg-surface p-6 shadow-panel" data-tour="soil-trend">
                 <div class="mb-5 flex items-start justify-between gap-3">
                     <div>
                         <h2 class="text-2xl font-bold tracking-tight text-slate-900">Soil Trend: NPK Average</h2>
@@ -95,7 +95,7 @@
                 </section>
 
                 <div class="grid gap-4 sm:grid-cols-2">
-                    <a href="{{ route('zones.index') }}" class="rounded-3xl bg-primary px-6 py-6 text-white shadow-panel transition hover:bg-success">
+                    <a href="{{ route('zones.index') }}" data-tour="start-analysis" class="rounded-3xl bg-primary px-6 py-6 text-white shadow-panel transition hover:bg-success">
                         <div class="flex items-center gap-3">
                             <span class="material-symbols-outlined">science</span>
                             <span class="text-lg font-bold">Start Analysis</span>
@@ -113,7 +113,7 @@
             </div>
         </div>
 
-        <section class="rounded-3xl border border-outline bg-surface p-6 shadow-panel">
+        <section class="rounded-3xl border border-outline bg-surface p-6 shadow-panel" data-tour="field-zones-summary">
             <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <div>
                     <h2 class="text-2xl font-bold tracking-tight text-slate-900">Field Zones</h2>

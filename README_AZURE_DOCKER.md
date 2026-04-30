@@ -58,18 +58,18 @@ az acr login --name <acr-name>
 
 docker compose --env-file .env.azure -f docker-compose.azure.yml build
 
-docker tag agrozonal-laravel:azure <acr-name>.azurecr.io/agrozonal-laravel:latest
-docker tag agrozonal-fastapi:azure <acr-name>.azurecr.io/agrozonal-fastapi:latest
+docker tag verai-laravel:azure <acr-name>.azurecr.io/verai-laravel:latest
+docker tag verai-fastapi:azure <acr-name>.azurecr.io/verai-fastapi:latest
 
-docker push <acr-name>.azurecr.io/agrozonal-laravel:latest
-docker push <acr-name>.azurecr.io/agrozonal-fastapi:latest
+docker push <acr-name>.azurecr.io/verai-laravel:latest
+docker push <acr-name>.azurecr.io/verai-fastapi:latest
 ```
 
 Lalu set image di environment:
 
 ```env
-AZURE_LARAVEL_IMAGE=<acr-name>.azurecr.io/agrozonal-laravel:latest
-AZURE_FASTAPI_IMAGE=<acr-name>.azurecr.io/agrozonal-fastapi:latest
+AZURE_LARAVEL_IMAGE=<acr-name>.azurecr.io/verai-laravel:latest
+AZURE_FASTAPI_IMAGE=<acr-name>.azurecr.io/verai-fastapi:latest
 ```
 
 ## Environment penting

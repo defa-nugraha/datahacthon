@@ -14,8 +14,12 @@ use Illuminate\View\View;
 
 class SoilDataController extends Controller
 {
-    public function index(ZoneAnalyticsService $analytics): View
+    public function index(Request $request, ZoneAnalyticsService $analytics): View|RedirectResponse
     {
+        if ($request->user()?->isAdmin()) {
+            return redirect()->route('admin.dashboard');
+        }
+
         return view('welcome', $analytics->buildDashboardSummary());
     }
 

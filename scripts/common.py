@@ -13,6 +13,7 @@ PIPELINES_DIR = ARTIFACTS_DIR / "pipelines"
 NOTEBOOKS_DIR = PROJECT_ROOT / "notebooks"
 
 ZONE_NOTEBOOK_PATH = NOTEBOOKS_DIR / "zone_based_vegetation_recommendation.ipynb"
+ZONE_SUBMISSION_NOTEBOOK_PATH = NOTEBOOKS_DIR / "zone_model_submission_assessment.ipynb"
 
 PRIMARY_DATASET_PATH = CSV_DIR / "mendeley_8v757rr4st_crop_recommendation_soil_weather.csv"
 

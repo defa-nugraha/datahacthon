@@ -10,7 +10,7 @@ Komponen aktif:
 - preprocessing API default di `artifacts/pipelines/best_zone_pipeline_expanded.joblib`
 - notebook aktif di `notebooks/zone_based_vegetation_recommendation.ipynb`
 - API inferensi zona di `app/`
-- script pipeline zona di `scripts/build_zone_dataset.py`, `scripts/train_zone_model.py`, `scripts/prepare_zone_dataset_expanded.py`, dan `scripts/train_zone_model_expanded.py`
+- script pipeline zona di `scripts/build_zone_dataset.py`, `scripts/train_zone_model.py`, `scripts/prepare_zone_dataset_expanded.py`, `scripts/train_zone_model_expanded.py`, dan `scripts/assess_zone_submission.py`
 
 Source dataset aktif:
 
@@ -23,3 +23,10 @@ File dan artifact dari pipeline sebelum sistem zona dipindahkan ke:
 Dokumentasi API:
 
 - [README_FASTAPI.md](README_FASTAPI.md)
+
+Artifact evaluasi submission:
+
+- `artifacts/eda_zone_expanded.md`
+- `artifacts/per_class_metrics_expanded.csv`
+- `artifacts/feature_importance_best_model_expanded.csv`
+- `artifacts/submission_scorecard.md`

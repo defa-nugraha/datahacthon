@@ -227,6 +227,19 @@ class ZonePredictionRequest(BaseModel):
         return self
 
 
+class ZoneStrategyRequest(ZonePredictionRequest):
+    current_crop: str | None = Field(
+        default=None,
+        description="Optional currently planted crop for intervention-oriented advice.",
+    )
+    time_horizon_days: int = Field(
+        default=14,
+        ge=1,
+        le=120,
+        description="Planning horizon for the strategic agronomic recommendations.",
+    )
+
+
 class TopKPrediction(BaseModel):
     label: str
     probability: float
@@ -265,6 +278,34 @@ class ZonePredictionResponse(BaseModel):
 
 class ZonePredictionDebugResponse(ZonePredictionResponse):
     debug: dict[str, Any]
+
+
+class StrategyActionItem(BaseModel):
+    title: str
+    rationale: str
+    timeframe: str
+    expected_impact: str
+
+
+class StrategicInsightPayload(BaseModel):
+    provider: str
+    summary: str
+    urgency: str
+    reasoning: list[str]
+    recommended_actions: list[StrategyActionItem]
+    monitoring_focus: list[str]
+    risks: list[str]
+
+
+class ZoneStrategyResponse(BaseModel):
+    status: str
+    zone_id: str
+    sample_count: int
+    aggregated_features: dict[str, Any]
+    prediction: PredictionPayload
+    strategic_insight: StrategicInsightPayload
+    model_info: ModelInfoPayload
+    warnings: list[str]
 
 
 class HealthResponse(BaseModel):

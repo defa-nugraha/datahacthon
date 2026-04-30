@@ -16,8 +16,11 @@ from app.schemas import (
     ZonePredictionDebugResponse,
     ZonePredictionRequest,
     ZonePredictionResponse,
+    ZoneStrategyRequest,
+    ZoneStrategyResponse,
 )
 from app.services.predictor import ZonePredictor
+from app.services.strategic_advisor import ZoneStrategicAdvisor
 
 
 def _configure_logging(level: str) -> None:
@@ -31,6 +34,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or get_settings()
     _configure_logging(settings.log_level)
     logger = logging.getLogger(__name__)
+    strategic_advisor = ZoneStrategicAdvisor(settings)
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -133,6 +137,29 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     ) -> dict[str, Any]:
         predictor = _get_predictor(request)
         return predictor.predict(payload, include_debug=True)
+
+    @app.post(
+        "/insights/zone-strategy",
+        response_model=ZoneStrategyResponse,
+        responses={400: {"model": ErrorResponse}, 422: {"model": ErrorResponse}, 503: {"model": ErrorResponse}},
+        tags=["strategy"],
+    )
+    async def zone_strategy_insight(
+        request: Request,
+        payload: ZoneStrategyRequest = Body(..., openapi_examples=ZONE_PREDICTION_REQUEST_OPENAPI_EXAMPLES),
+    ) -> dict[str, Any]:
+        predictor = _get_predictor(request)
+        prediction = predictor.predict(payload, include_debug=False)
+        strategic_insight = strategic_advisor.generate(
+            payload=payload,
+            prediction_result=prediction,
+            current_crop=payload.current_crop,
+            time_horizon_days=payload.time_horizon_days,
+        )
+        return {
+            **prediction,
+            "strategic_insight": strategic_insight,
+        }
 
     return app
 

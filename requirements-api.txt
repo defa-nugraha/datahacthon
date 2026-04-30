@@ -10,3 +10,5 @@ uvicorn
 pydantic
 pytest
 httpx
+openai
+azure-identity

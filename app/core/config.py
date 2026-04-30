@@ -34,6 +34,13 @@ class Settings:
     recommended_min_samples_override: int | None
     allow_prediction_below_recommended_min_samples: bool
     default_top_k: int
+    azure_openai_enabled: bool
+    azure_openai_endpoint: str | None
+    azure_openai_api_key: str | None
+    azure_openai_deployment: str | None
+    azure_openai_use_entra_id: bool
+    azure_openai_temperature: float
+    azure_openai_max_output_tokens: int
     log_level: str
     api_title: str
     api_version: str
@@ -83,6 +90,13 @@ class Settings:
                 default=True,
             ),
             default_top_k=max(1, int(os.getenv("DEFAULT_TOP_K", "3"))),
+            azure_openai_enabled=_parse_bool(os.getenv("AZURE_OPENAI_ENABLED"), default=False),
+            azure_openai_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
+            azure_openai_api_key=os.getenv("AZURE_OPENAI_API_KEY"),
+            azure_openai_deployment=os.getenv("AZURE_OPENAI_DEPLOYMENT"),
+            azure_openai_use_entra_id=_parse_bool(os.getenv("AZURE_OPENAI_USE_ENTRA_ID"), default=False),
+            azure_openai_temperature=float(os.getenv("AZURE_OPENAI_TEMPERATURE", "0.2")),
+            azure_openai_max_output_tokens=max(128, int(os.getenv("AZURE_OPENAI_MAX_OUTPUT_TOKENS", "900"))),
             log_level=os.getenv("LOG_LEVEL", "INFO").upper(),
             api_title=os.getenv(
                 "API_TITLE",

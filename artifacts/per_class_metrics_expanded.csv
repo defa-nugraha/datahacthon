@@ -1,0 +1,14 @@
+label,precision,recall,f1_score,support
+Jeruk,1.0,1.0,1.0,1
+Kacang Hijau,1.0,1.0,1.0,1
+Kopi,1.0,1.0,1.0,1
+Pepaya,1.0,1.0,1.0,1
+Semangka,1.0,1.0,1.0,1
+Jelai,0.0,0.0,0.0,1
+Kelapa,1.0,1.0,1.0,2
+Mangga,1.0,1.0,1.0,2
+Padi,1.0,1.0,1.0,2
+Pisang,1.0,1.0,1.0,2
+Gandum,0.0,0.0,0.0,2
+Teff,1.0,1.0,1.0,4
+Jagung,0.6667,1.0,0.8,4

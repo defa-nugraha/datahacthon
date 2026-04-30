@@ -114,6 +114,24 @@ Sama seperti endpoint utama, tetapi menambahkan:
 - full categorical aggregations
 - daftar fitur model yang diimputasi
 
+### `POST /insights/zone-strategy`
+
+Endpoint ini menjalankan prediksi zona lalu mengubah hasilnya menjadi rekomendasi strategis yang bisa ditindaklanjuti.
+
+Respons selalu memuat:
+
+- hasil prediksi model zona
+- urgency
+- alasan utama
+- daftar aksi prioritas
+- fokus monitoring
+- daftar risiko
+
+Provider insight:
+
+- `azure_openai` jika Azure OpenAI aktif dan berhasil
+- `local_fallback` jika Azure tidak aktif atau gagal
+
 ## Request Schema
 
 Top-level:
@@ -121,6 +139,8 @@ Top-level:
 - `zone_id`: wajib
 - `samples`: wajib
 - `top_k`: opsional
+- `current_crop`: opsional, khusus endpoint strategis
+- `time_horizon_days`: opsional, khusus endpoint strategis
 
 Setiap elemen `samples`:
 
@@ -203,6 +223,34 @@ Jika fitur opsional seperti iklim atau `soil_color` tidak diberikan:
 - preprocessing pipeline akan mengimputasi nilai tersebut
 - response akan mengembalikan warning
 
+## Azure OpenAI
+
+Service ini mendukung integrasi **Azure OpenAI** untuk menghasilkan strategic insight di atas hasil model tabular.
+
+Konfigurasi environment:
+
+```bash
+AZURE_OPENAI_ENABLED=true
+AZURE_OPENAI_ENDPOINT=https://YOUR-RESOURCE-NAME.openai.azure.com
+AZURE_OPENAI_DEPLOYMENT=YOUR_MODEL_DEPLOYMENT_NAME
+AZURE_OPENAI_API_KEY=...
+```
+
+Atau gunakan Microsoft Entra ID:
+
+```bash
+AZURE_OPENAI_ENABLED=true
+AZURE_OPENAI_ENDPOINT=https://YOUR-RESOURCE-NAME.openai.azure.com
+AZURE_OPENAI_DEPLOYMENT=YOUR_MODEL_DEPLOYMENT_NAME
+AZURE_OPENAI_USE_ENTRA_ID=true
+```
+
+Catatan implementasi:
+
+- endpoint strategis memakai structured output agar respons tetap ter-parse ke schema yang konsisten
+- jika kredensial atau deployment Azure belum siap, service otomatis turun ke fallback lokal
+- model klasifikasi inti tidak berubah; Azure hanya dipakai untuk lapisan reasoning dan recommendation
+
 ## Contoh Request Sukses
 
 ```bash
@@ -250,14 +298,32 @@ curl -X POST "http://127.0.0.1:8000/predict/zone" \
     ]
   },
   "model_info": {
-    "model_name": "random_forest_zone_mean_only",
-    "feature_set_type": "mean_only",
-    "active_scenario": "zone_mean_only"
+    "model_name": "extra_trees_zone_mean_plus_variability",
+    "feature_set_type": "mean_plus_variability",
+    "active_scenario": "zone_mean_plus_variability"
   },
   "warnings": [
     "context_sample_count is not derivable from request payload and was approximated with sample_count."
   ]
 }
+```
+
+## Contoh Strategic Insight
+
+```bash
+curl -X POST "http://127.0.0.1:8000/insights/zone-strategy" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "zone_id": "zona_strategi_a",
+    "current_crop": "Jagung",
+    "time_horizon_days": 14,
+    "top_k": 3,
+    "samples": [
+      {"point_id": "A1", "ph": 6.5, "nitrogen": 100, "phosphorus": 40, "potassium": 70, "temperature_mean": 19.3, "rainfall_mean": 6.2},
+      {"point_id": "A2", "ph": 6.4, "nitrogen": 102, "phosphorus": 39, "potassium": 68, "temperature_mean": 19.1, "rainfall_mean": 6.1},
+      {"point_id": "A3", "ph": 6.6, "nitrogen": 98, "phosphorus": 41, "potassium": 72, "temperature_mean": 19.4, "rainfall_mean": 6.3}
+    ]
+  }'
 ```
 
 ## Contoh Error: Sample Terlalu Sedikit

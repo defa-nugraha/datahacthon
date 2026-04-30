@@ -56,6 +56,18 @@ def test_predict_zone_valid_request(client: TestClient) -> None:
     assert len(body["prediction"]["top_k"]) == 3
 
 
+def test_zone_strategy_endpoint_returns_fallback_strategy(client: TestClient) -> None:
+    payload = _valid_zone_payload()
+    payload["current_crop"] = "Jagung"
+    payload["time_horizon_days"] = 14
+    response = client.post("/insights/zone-strategy", json=payload)
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "success"
+    assert body["strategic_insight"]["provider"] == "local_fallback"
+    assert body["strategic_insight"]["recommended_actions"]
+
+
 def test_predict_zone_rejects_too_few_samples(client: TestClient) -> None:
     response = client.post("/predict/zone", json=_valid_zone_payload(sample_count=2))
     assert response.status_code == 400

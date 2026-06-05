@@ -132,6 +132,19 @@ Provider insight:
 - `azure_openai` jika Azure OpenAI aktif dan berhasil
 - `local_fallback` jika Azure tidak aktif atau gagal
 
+### `POST /forecast/weather`
+
+Endpoint forecasting cuaca bulanan dari artifact ARIMA aktif.
+
+Input:
+
+- `zone_id`: opsional, untuk traceability zona
+- `latitude` dan `longitude`: opsional, dicatat sebagai konteks zona
+- `months`: jumlah bulan prediksi, default `12`, maksimum mengikuti `WEATHER_FORECAST_MAX_MONTHS`
+- `crop_name`: opsional, tanaman aktif atau kandidat tanaman
+
+Catatan: model ARIMA saat ini berbasis deret waktu historis yang tersedia, belum model spasial. Koordinat disimpan dan dikembalikan sebagai konteks, tetapi belum mengubah hasil forecast.
+
 ## Request Schema
 
 Top-level:
@@ -269,6 +282,20 @@ curl -X POST "http://127.0.0.1:8000/predict/zone" \
       {"point_id": "A7", "ph": 6.5, "nitrogen": 103, "phosphorus": 42, "potassium": 73, "zinc": 1.3, "sulfur": 10},
       {"point_id": "A8", "ph": 6.4, "nitrogen": 97, "phosphorus": 37, "potassium": 67, "zinc": 1.0, "sulfur": 9}
     ]
+  }'
+```
+
+### Contoh Forecast Cuaca
+
+```bash
+curl -X POST "http://127.0.0.1:8000/forecast/weather" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "zone_id": "tanah-ijen",
+    "latitude": -8.0582181,
+    "longitude": 114.2417552,
+    "months": 3,
+    "crop_name": "Jagung"
   }'
 ```
 

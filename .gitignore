@@ -1,3 +1,22 @@
-INTERFACE/
+# Local environment files
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Runtime/dependency folders
 node_modules/
 vendor/
+.venv/
+.pytest_cache/
+__pycache__/
+*.pyc
+
+# Project runtime artifacts
+*.log
+*.sqlite
+*.sqlite3
+.phpunit.result.cache
+
+# The Laravel interface is currently maintained as a separate git worktree.
+INTERFACE/

@@ -1,0 +1,233 @@
+services:
+  api:
+    build:
+      context: ./API
+      dockerfile: Dockerfile
+    image: datahacthon-api:dev
+    container_name: datahacthon-api
+    restart: unless-stopped
+    ports:
+      - "${API_PORT:-8000}:8000"
+    environment:
+      PROJECT_ROOT: /app
+      API_TITLE: ${API_TITLE:-Zone-Based Vegetation Recommendation API}
+      API_VERSION: ${API_VERSION:-1.0.0}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      ACTIVE_ZONE_SCENARIO: ${ACTIVE_ZONE_SCENARIO:-zone_mean_plus_variability}
+      ZONE_MODEL_PATH: ${ZONE_MODEL_PATH:-artifacts/models/best_zone_model_expanded.joblib}
+      ZONE_PREPROCESSING_PATH: ${ZONE_PREPROCESSING_PATH:-artifacts/pipelines/best_zone_pipeline_expanded.joblib}
+      ZONE_METRICS_PATH: ${ZONE_METRICS_PATH:-artifacts/best_model_metrics_expanded.json}
+      ZONE_METADATA_PATH: ${ZONE_METADATA_PATH:-data/processed/zone_dataset_expanded_id_metadata.json}
+      ZONE_FEATURE_SUMMARY_PATH: ${ZONE_FEATURE_SUMMARY_PATH:-artifacts/zone_feature_summary_expanded.csv}
+      WEATHER_FORECAST_DIR: ${WEATHER_FORECAST_DIR:-artifacts/forecasting}
+      WEATHER_FORECAST_MAX_MONTHS: ${WEATHER_FORECAST_MAX_MONTHS:-36}
+      ZONE_INFERENCE_ABSOLUTE_MIN_SAMPLES: ${ZONE_INFERENCE_ABSOLUTE_MIN_SAMPLES:-3}
+      ZONE_INFERENCE_RECOMMENDED_MIN_SAMPLES: ${ZONE_INFERENCE_RECOMMENDED_MIN_SAMPLES:-8}
+      ALLOW_PREDICTION_BELOW_RECOMMENDED_MIN_SAMPLES: ${ALLOW_PREDICTION_BELOW_RECOMMENDED_MIN_SAMPLES:-true}
+      DEFAULT_TOP_K: ${DEFAULT_TOP_K:-3}
+      AZURE_OPENAI_ENABLED: ${AZURE_OPENAI_ENABLED:-false}
+      AZURE_OPENAI_ENDPOINT: ${AZURE_OPENAI_ENDPOINT:-}
+      AZURE_OPENAI_DEPLOYMENT: ${AZURE_OPENAI_DEPLOYMENT:-}
+      AZURE_OPENAI_API_KEY: ${AZURE_OPENAI_API_KEY:-}
+      AZURE_OPENAI_API_VERSION: ${AZURE_OPENAI_API_VERSION:-2024-02-15-preview}
+      AZURE_OPENAI_TEMPERATURE: ${AZURE_OPENAI_TEMPERATURE:-0.2}
+      AZURE_OPENAI_MAX_OUTPUT_TOKENS: ${AZURE_OPENAI_MAX_OUTPUT_TOKENS:-900}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  app:
+    build:
+      context: ./INTERFACE
+      dockerfile: .docker/php/Dockerfile
+      args:
+        PHP_VERSION: ${PHP_VERSION:-8.4}
+        NODE_MAJOR: ${NODE_MAJOR:-22}
+        COMPOSER_VERSION: ${COMPOSER_VERSION:-2.8}
+    image: datahacthon-interface-app:dev
+    working_dir: /var/www/html
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_started
+    environment:
+      APP_ENV: ${APP_ENV:-local}
+      APP_DEBUG: ${APP_DEBUG:-true}
+      DB_CONNECTION: ${DB_CONNECTION:-sqlite}
+      DB_DATABASE: ${DB_DATABASE:-/var/www/html/database/database.sqlite}
+      HOST_UID: ${HOST_UID:-1000}
+      HOST_GID: ${HOST_GID:-1000}
+      RUN_MIGRATIONS: ${RUN_MIGRATIONS:-true}
+      RUN_SEEDERS: ${RUN_SEEDERS:-true}
+      ALLOW_DEMO_SEEDING_IN_PRODUCTION: ${ALLOW_DEMO_SEEDING_IN_PRODUCTION:-true}
+      AI_ADVISOR_BASE_URL: ${AI_ADVISOR_BASE_URL:-http://api:8000}
+      AI_ADVISOR_TIMEOUT: ${AI_ADVISOR_TIMEOUT:-20}
+      AI_ADVISOR_ALLOW_LOCAL_FALLBACK: ${AI_ADVISOR_ALLOW_LOCAL_FALLBACK:-true}
+      AI_ADVISOR_THRESHOLD_ENABLED: ${AI_ADVISOR_THRESHOLD_ENABLED:-true}
+      AI_ADVISOR_THRESHOLD_MIN_HISTORY_POINTS: ${AI_ADVISOR_THRESHOLD_MIN_HISTORY_POINTS:-2}
+      AI_ADVISOR_MIN_INTERVAL_MINUTES: ${AI_ADVISOR_MIN_INTERVAL_MINUTES:-60}
+      AI_ADVISOR_THRESHOLD_PH_DELTA: ${AI_ADVISOR_THRESHOLD_PH_DELTA:-0.25}
+      AI_ADVISOR_THRESHOLD_N_DELTA: ${AI_ADVISOR_THRESHOLD_N_DELTA:-8}
+      AI_ADVISOR_THRESHOLD_P_DELTA: ${AI_ADVISOR_THRESHOLD_P_DELTA:-5}
+      AI_ADVISOR_THRESHOLD_K_DELTA: ${AI_ADVISOR_THRESHOLD_K_DELTA:-8}
+      AI_ADVISOR_THRESHOLD_MOISTURE_DELTA: ${AI_ADVISOR_THRESHOLD_MOISTURE_DELTA:-8}
+      AI_ADVISOR_CRITICAL_PH_LOW: ${AI_ADVISOR_CRITICAL_PH_LOW:-5.8}
+      AI_ADVISOR_CRITICAL_PH_HIGH: ${AI_ADVISOR_CRITICAL_PH_HIGH:-7.5}
+      AI_ADVISOR_CRITICAL_P_LOW: ${AI_ADVISOR_CRITICAL_P_LOW:-18}
+      AI_ADVISOR_CRITICAL_MOISTURE_LOW: ${AI_ADVISOR_CRITICAL_MOISTURE_LOW:-25}
+      BMKG_WEATHER_BASE_URL: ${BMKG_WEATHER_BASE_URL:-https://api.bmkg.go.id}
+      BMKG_WEATHER_DEFAULT_ADM4: ${BMKG_WEATHER_DEFAULT_ADM4:-31.71.01.1001}
+      BMKG_WEATHER_TIMEOUT: ${BMKG_WEATHER_TIMEOUT:-12}
+      BMKG_WEATHER_CACHE_MINUTES: ${BMKG_WEATHER_CACHE_MINUTES:-30}
+      WILAYAH_API_BASE_URL: ${WILAYAH_API_BASE_URL:-https://wilayah.web.id/api}
+      WILAYAH_API_TIMEOUT: ${WILAYAH_API_TIMEOUT:-12}
+      CAHYADSN_WILAYAH_RAW_SQL_URL: ${CAHYADSN_WILAYAH_RAW_SQL_URL:-https://raw.githubusercontent.com/cahyadsn/wilayah/master/db/wilayah.sql}
+      CAHYADSN_WILAYAH_TIMEOUT: ${CAHYADSN_WILAYAH_TIMEOUT:-20}
+    volumes:
+      - ./INTERFACE:/var/www/html
+      - interface_vendor_data:/var/www/html/vendor
+      - interface_node_modules_data:/var/www/html/node_modules
+    healthcheck:
+      test: ["CMD", "php-fpm", "-t"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  web:
+    image: nginx:${NGINX_VERSION:-1.27-alpine}
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_started
+    ports:
+      - "${APP_PORT:-8080}:80"
+    volumes:
+      - ./INTERFACE:/var/www/html:ro
+      - interface_vendor_data:/var/www/html/vendor:ro
+      - ./INTERFACE/.docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+
+  vite:
+    image: datahacthon-interface-app:dev
+    depends_on:
+      app:
+        condition: service_started
+    working_dir: /var/www/html
+    environment:
+      SKIP_APP_BOOTSTRAP: "1"
+      APP_ENV: ${APP_ENV:-local}
+      APP_DEBUG: ${APP_DEBUG:-true}
+      DB_CONNECTION: ${DB_CONNECTION:-sqlite}
+      DB_DATABASE: ${DB_DATABASE:-/var/www/html/database/database.sqlite}
+    command: >
+      sh -lc "if [ ! -d node_modules ] || [ -z \"$(ls -A node_modules 2>/dev/null)\" ]; then npm install; fi &&
+      npm run dev -- --host 0.0.0.0 --port ${VITE_PORT:-5173}"
+    ports:
+      - "${VITE_PORT:-5173}:5173"
+    volumes:
+      - ./INTERFACE:/var/www/html
+      - interface_vendor_data:/var/www/html/vendor
+      - interface_node_modules_data:/var/www/html/node_modules
+
+  queue:
+    image: datahacthon-interface-app:dev
+    depends_on:
+      app:
+        condition: service_started
+    profiles: ["workers"]
+    working_dir: /var/www/html
+    environment:
+      SKIP_APP_BOOTSTRAP: "1"
+      APP_ENV: ${APP_ENV:-local}
+      APP_DEBUG: ${APP_DEBUG:-true}
+      DB_CONNECTION: ${DB_CONNECTION:-sqlite}
+      DB_DATABASE: ${DB_DATABASE:-/var/www/html/database/database.sqlite}
+    command: >
+      sh -lc "until [ -f vendor/autoload.php ]; do echo 'Menunggu composer dependencies siap...'; sleep 2; done;
+      php artisan queue:listen --tries=1 --timeout=0"
+    volumes:
+      - ./INTERFACE:/var/www/html
+      - interface_vendor_data:/var/www/html/vendor
+
+  scheduler:
+    image: datahacthon-interface-app:dev
+    depends_on:
+      app:
+        condition: service_started
+      api:
+        condition: service_started
+    profiles: ["workers"]
+    working_dir: /var/www/html
+    environment:
+      SKIP_APP_BOOTSTRAP: "1"
+      APP_ENV: ${APP_ENV:-local}
+      APP_DEBUG: ${APP_DEBUG:-true}
+      DB_CONNECTION: ${DB_CONNECTION:-sqlite}
+      DB_DATABASE: ${DB_DATABASE:-/var/www/html/database/database.sqlite}
+      RUN_MIGRATIONS: ${RUN_MIGRATIONS:-true}
+      RUN_SEEDERS: ${RUN_SEEDERS:-true}
+      ALLOW_DEMO_SEEDING_IN_PRODUCTION: ${ALLOW_DEMO_SEEDING_IN_PRODUCTION:-true}
+      AI_ADVISOR_BASE_URL: ${AI_ADVISOR_BASE_URL:-http://api:8000}
+      AI_ADVISOR_TIMEOUT: ${AI_ADVISOR_TIMEOUT:-20}
+      AI_ADVISOR_ALLOW_LOCAL_FALLBACK: ${AI_ADVISOR_ALLOW_LOCAL_FALLBACK:-true}
+      AI_ADVISOR_THRESHOLD_ENABLED: ${AI_ADVISOR_THRESHOLD_ENABLED:-true}
+      AI_ADVISOR_THRESHOLD_MIN_HISTORY_POINTS: ${AI_ADVISOR_THRESHOLD_MIN_HISTORY_POINTS:-2}
+      AI_ADVISOR_MIN_INTERVAL_MINUTES: ${AI_ADVISOR_MIN_INTERVAL_MINUTES:-60}
+      AI_ADVISOR_THRESHOLD_PH_DELTA: ${AI_ADVISOR_THRESHOLD_PH_DELTA:-0.25}
+      AI_ADVISOR_THRESHOLD_N_DELTA: ${AI_ADVISOR_THRESHOLD_N_DELTA:-8}
+      AI_ADVISOR_THRESHOLD_P_DELTA: ${AI_ADVISOR_THRESHOLD_P_DELTA:-5}
+      AI_ADVISOR_THRESHOLD_K_DELTA: ${AI_ADVISOR_THRESHOLD_K_DELTA:-8}
+      AI_ADVISOR_THRESHOLD_MOISTURE_DELTA: ${AI_ADVISOR_THRESHOLD_MOISTURE_DELTA:-8}
+      AI_ADVISOR_CRITICAL_PH_LOW: ${AI_ADVISOR_CRITICAL_PH_LOW:-5.8}
+      AI_ADVISOR_CRITICAL_PH_HIGH: ${AI_ADVISOR_CRITICAL_PH_HIGH:-7.5}
+      AI_ADVISOR_CRITICAL_P_LOW: ${AI_ADVISOR_CRITICAL_P_LOW:-18}
+      AI_ADVISOR_CRITICAL_MOISTURE_LOW: ${AI_ADVISOR_CRITICAL_MOISTURE_LOW:-25}
+      BMKG_WEATHER_BASE_URL: ${BMKG_WEATHER_BASE_URL:-https://api.bmkg.go.id}
+      BMKG_WEATHER_DEFAULT_ADM4: ${BMKG_WEATHER_DEFAULT_ADM4:-31.71.01.1001}
+      BMKG_WEATHER_TIMEOUT: ${BMKG_WEATHER_TIMEOUT:-12}
+      BMKG_WEATHER_CACHE_MINUTES: ${BMKG_WEATHER_CACHE_MINUTES:-30}
+      WILAYAH_API_BASE_URL: ${WILAYAH_API_BASE_URL:-https://wilayah.web.id/api}
+      WILAYAH_API_TIMEOUT: ${WILAYAH_API_TIMEOUT:-12}
+      CAHYADSN_WILAYAH_RAW_SQL_URL: ${CAHYADSN_WILAYAH_RAW_SQL_URL:-https://raw.githubusercontent.com/cahyadsn/wilayah/master/db/wilayah.sql}
+      CAHYADSN_WILAYAH_TIMEOUT: ${CAHYADSN_WILAYAH_TIMEOUT:-20}
+    command: >
+      sh -lc "until [ -f vendor/autoload.php ]; do echo 'Menunggu composer dependencies siap...'; sleep 2; done;
+      php artisan schedule:work"
+    volumes:
+      - ./INTERFACE:/var/www/html
+      - interface_vendor_data:/var/www/html/vendor
+
+  mqtt-subscriber:
+    image: datahacthon-interface-app:dev
+    depends_on:
+      app:
+        condition: service_started
+    profiles: ["workers", "mqtt"]
+    working_dir: /var/www/html
+    environment:
+      SKIP_APP_BOOTSTRAP: "1"
+      APP_ENV: ${APP_ENV:-local}
+      APP_DEBUG: ${APP_DEBUG:-true}
+      DB_CONNECTION: ${DB_CONNECTION:-sqlite}
+      DB_DATABASE: ${DB_DATABASE:-/var/www/html/database/database.sqlite}
+      AZURE_IOT_HOST: ${AZURE_IOT_HOST:-}
+      AZURE_IOT_CLIENT_ID: ${AZURE_IOT_CLIENT_ID:-}
+      AZURE_IOT_USER: ${AZURE_IOT_USER:-}
+      AZURE_IOT_PASS: ${AZURE_IOT_PASS:-}
+      AZURE_IOT_PORT: ${AZURE_IOT_PORT:-8883}
+      AZURE_IOT_ONLINE_THRESHOLD_MINUTES: ${AZURE_IOT_ONLINE_THRESHOLD_MINUTES:-60}
+      AZURE_IOT_LIVE_BUFFER_LIMIT: ${AZURE_IOT_LIVE_BUFFER_LIMIT:-120}
+      AZURE_IOT_PERSIST_TELEMETRY: ${AZURE_IOT_PERSIST_TELEMETRY:-false}
+    command: >
+      sh -lc "until [ -f vendor/autoload.php ]; do echo 'Menunggu composer dependencies siap...'; sleep 2; done;
+      php artisan app:azure-mqtt-subscriber"
+    volumes:
+      - ./INTERFACE:/var/www/html
+      - interface_vendor_data:/var/www/html/vendor
+
+volumes:
+  interface_vendor_data:
+  interface_node_modules_data:

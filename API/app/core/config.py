@@ -28,6 +28,8 @@ class Settings:
     zone_metrics_path: Path
     zone_metadata_path: Path
     zone_feature_summary_path: Path
+    weather_forecast_dir: Path
+    weather_forecast_max_months: int
     active_zone_scenario: str | None
     active_zone_model_version: str | None
     absolute_min_samples: int
@@ -79,6 +81,12 @@ class Settings:
                 os.getenv("ZONE_FEATURE_SUMMARY_PATH"),
                 "artifacts/zone_feature_summary_expanded.csv",
             ),
+            weather_forecast_dir=_resolve_path(
+                project_root,
+                os.getenv("WEATHER_FORECAST_DIR"),
+                "artifacts/forecasting",
+            ),
+            weather_forecast_max_months=max(1, int(os.getenv("WEATHER_FORECAST_MAX_MONTHS", "36"))),
             active_zone_scenario=os.getenv("ACTIVE_ZONE_SCENARIO", "zone_mean_plus_variability") or None,
             active_zone_model_version=os.getenv("ACTIVE_ZONE_MODEL_VERSION") or None,
             absolute_min_samples=max(1, int(os.getenv("ZONE_INFERENCE_ABSOLUTE_MIN_SAMPLES", "3"))),

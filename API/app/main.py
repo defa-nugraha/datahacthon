@@ -10,8 +10,12 @@ from app.core.config import Settings, get_settings
 from app.core.exceptions import ArtifactLoadError, register_exception_handlers
 from app.schemas import (
     ErrorResponse,
+    CareAdviceRequest,
+    CareAdviceResponse,
     HealthResponse,
     ModelInfoPayload,
+    WeatherForecastRequest,
+    WeatherForecastResponse,
     ZONE_PREDICTION_REQUEST_OPENAPI_EXAMPLES,
     ZonePredictionDebugResponse,
     ZonePredictionRequest,
@@ -21,6 +25,7 @@ from app.schemas import (
 )
 from app.services.predictor import ZonePredictor
 from app.services.strategic_advisor import ZoneStrategicAdvisor
+from app.services.weather_forecaster import WeatherForecaster
 
 
 def _configure_logging(level: str) -> None:
@@ -35,6 +40,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     _configure_logging(settings.log_level)
     logger = logging.getLogger(__name__)
     strategic_advisor = ZoneStrategicAdvisor(settings)
+    weather_forecaster = WeatherForecaster(settings)
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -137,6 +143,24 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     ) -> dict[str, Any]:
         predictor = _get_predictor(request)
         return predictor.predict(payload, include_debug=True)
+
+    @app.post(
+        "/advice/care",
+        response_model=CareAdviceResponse,
+        responses={400: {"model": ErrorResponse}, 422: {"model": ErrorResponse}},
+        tags=["advice"],
+    )
+    async def care_advice(payload: CareAdviceRequest) -> dict[str, Any]:
+        return strategic_advisor.generate_care_advice(payload)
+
+    @app.post(
+        "/forecast/weather",
+        response_model=WeatherForecastResponse,
+        responses={400: {"model": ErrorResponse}, 422: {"model": ErrorResponse}, 503: {"model": ErrorResponse}},
+        tags=["forecast"],
+    )
+    async def weather_forecast(payload: WeatherForecastRequest) -> dict[str, Any]:
+        return weather_forecaster.forecast(payload)
 
     @app.post(
         "/insights/zone-strategy",

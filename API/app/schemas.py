@@ -308,6 +308,106 @@ class ZoneStrategyResponse(BaseModel):
     warnings: list[str]
 
 
+class NutrientHistoryPoint(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+    timestamp: str | None = None
+    ph: float = Field(..., ge=0, le=14)
+    nitrogen: float = Field(..., ge=0)
+    phosphorus: float = Field(..., ge=0)
+    potassium: float = Field(..., ge=0)
+    soil_moisture: float | None = Field(default=None, ge=0, le=100)
+
+    @field_validator("ph", "nitrogen", "phosphorus", "potassium", "soil_moisture", mode="before")
+    @classmethod
+    def reject_boolean_numeric_values(cls, value: Any) -> Any:
+        if isinstance(value, bool):
+            raise ValueError("must be a numeric value, not boolean.")
+        return value
+
+    @field_validator("ph", "nitrogen", "phosphorus", "potassium", "soil_moisture")
+    @classmethod
+    def validate_finite_numbers(cls, value: float | None) -> float | None:
+        if value is None:
+            return None
+        if not math.isfinite(value):
+            raise ValueError("must be a finite numeric value.")
+        return value
+
+
+class CareAdviceRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+    zone_id: str = Field(..., min_length=1)
+    zone_name: str | None = None
+    current_crop: str = Field(..., min_length=1)
+    history_window_minutes: int = Field(default=60, ge=15, le=360)
+    nutrient_history: list[NutrientHistoryPoint] = Field(..., min_length=1)
+    current_snapshot: dict[str, Any] | None = None
+    threshold_context: dict[str, Any] | None = None
+    weather_forecast: dict[str, Any] | None = None
+
+
+class CareRecommendationPayload(BaseModel):
+    title: str
+    detail: str
+    priority: str
+    timing_hours: float | None = None
+
+
+class CareAdviceResponse(BaseModel):
+    summary: str
+    urgency: str
+    recommendations: list[CareRecommendationPayload]
+    observation_focus: list[str]
+    risk_flags: list[str]
+    provider: str
+    warning: str | None = None
+
+
+class WeatherForecastRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+    zone_id: str | None = Field(default=None, description="Optional zone identifier for response traceability.")
+    latitude: float | None = Field(default=None, ge=-90, le=90, description="Optional zone latitude.")
+    longitude: float | None = Field(default=None, ge=-180, le=180, description="Optional zone longitude.")
+    months: int = Field(default=12, ge=1, le=36, description="Number of monthly forecast steps to return.")
+    crop_name: str | None = Field(default=None, description="Optional active or candidate crop name.")
+
+    @field_validator("latitude", "longitude", mode="before")
+    @classmethod
+    def reject_boolean_coordinates(cls, value: Any) -> Any:
+        if isinstance(value, bool):
+            raise ValueError("must be a numeric value, not boolean.")
+        return value
+
+    @field_validator("latitude", "longitude")
+    @classmethod
+    def validate_finite_coordinates(cls, value: float | None) -> float | None:
+        if value is None:
+            return None
+        if not math.isfinite(value):
+            raise ValueError("must be a finite numeric value.")
+        return value
+
+
+class WeatherForecastPoint(BaseModel):
+    month: str
+    suhu_maksimum_c: float | None = None
+    suhu_rata_rata_c: float | None = None
+
+
+class WeatherForecastResponse(BaseModel):
+    status: str
+    zone_id: str | None = None
+    location: dict[str, float | None]
+    crop_name: str | None = None
+    horizon_months: int
+    forecast: list[WeatherForecastPoint]
+    model_info: dict[str, Any]
+    warnings: list[str]
+
+
 class HealthResponse(BaseModel):
     status: str
     model_loaded: bool

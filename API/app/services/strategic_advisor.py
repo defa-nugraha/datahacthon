@@ -7,7 +7,7 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict
 
 from app.core.config import Settings
-from app.schemas import ZonePredictionRequest
+from app.schemas import CareAdviceRequest, ZonePredictionRequest
 
 
 LOGGER = logging.getLogger(__name__)
@@ -31,6 +31,25 @@ class ZoneStrategySchema(BaseModel):
     recommended_actions: list[StrategyActionSchema]
     monitoring_focus: list[str]
     risks: list[str]
+
+
+class CareRecommendationSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    title: str
+    detail: str
+    priority: str
+    timing_hours: float | None = None
+
+
+class CareAdviceSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    summary: str
+    urgency: str
+    recommendations: list[CareRecommendationSchema]
+    observation_focus: list[str]
+    risk_flags: list[str]
 
 
 class ZoneStrategicAdvisor:
@@ -68,6 +87,23 @@ class ZoneStrategicAdvisor:
         fallback["provider"] = "local_fallback"
         if azure_warnings:
             fallback["risks"] = list(dict.fromkeys(fallback["risks"] + azure_warnings))
+        return fallback
+
+    def generate_care_advice(self, payload: CareAdviceRequest) -> dict[str, Any]:
+        azure_warnings: list[str] = []
+        if self.settings.azure_openai_enabled:
+            try:
+                care_payload = self._generate_care_with_azure(payload)
+                care_payload["provider"] = "azure_openai"
+                care_payload["warning"] = None
+                return care_payload
+            except Exception as exc:  # pragma: no cover - network/config dependent
+                LOGGER.warning("Azure OpenAI care advice failed: %s", exc)
+                azure_warnings.append(f"Azure OpenAI fallback activated: {type(exc).__name__}: {exc}")
+
+        fallback = self._generate_care_fallback(payload)
+        fallback["provider"] = "local_fallback"
+        fallback["warning"] = "; ".join(azure_warnings) if azure_warnings else None
         return fallback
 
     def _generate_with_azure(
@@ -145,6 +181,68 @@ class ZoneStrategicAdvisor:
                 },
             ],
             response_format=ZoneStrategySchema,
+        )
+        parsed = completion.choices[0].message.parsed
+        if parsed is None:
+            raise ValueError("Azure OpenAI did not return a parsed structured response.")
+        return parsed.model_dump()
+
+    def _generate_care_with_azure(self, payload: CareAdviceRequest) -> dict[str, Any]:
+        if not self.settings.azure_openai_endpoint:
+            raise ValueError("AZURE_OPENAI_ENDPOINT is required when Azure OpenAI is enabled.")
+        if not self.settings.azure_openai_deployment:
+            raise ValueError("AZURE_OPENAI_DEPLOYMENT is required when Azure OpenAI is enabled.")
+
+        try:
+            from openai import OpenAI
+        except ImportError as exc:  # pragma: no cover - depends on local environment
+            raise ImportError("The `openai` package is required for Azure OpenAI integration.") from exc
+
+        credential: Any
+        if self.settings.azure_openai_api_key:
+            credential = self.settings.azure_openai_api_key
+        elif self.settings.azure_openai_use_entra_id:
+            try:
+                from azure.identity import DefaultAzureCredential, get_bearer_token_provider
+            except ImportError as exc:  # pragma: no cover - depends on local environment
+                raise ImportError("The `azure-identity` package is required for Entra ID authentication.") from exc
+
+            credential = get_bearer_token_provider(DefaultAzureCredential(), "https://ai.azure.com/.default")
+        else:
+            raise ValueError(
+                "Azure OpenAI is enabled but no authentication method is configured. "
+                "Set AZURE_OPENAI_API_KEY or enable AZURE_OPENAI_USE_ENTRA_ID."
+            )
+
+        client = OpenAI(
+            base_url=self.settings.azure_openai_endpoint.rstrip("/") + "/openai/v1/",
+            api_key=credential,
+        )
+
+        completion = client.beta.chat.completions.parse(
+            model=self.settings.azure_openai_deployment,
+            temperature=self.settings.azure_openai_temperature,
+            max_tokens=self.settings.azure_openai_max_output_tokens,
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You are an agronomic care advisor for farmers. "
+                        "Return conservative, practical, field-executable recommendations in Indonesian. "
+                        "Use only the provided 1-hour nutrient history, current crop, threshold context, and BMKG 3-day weather forecast. "
+                        "Do not make yield guarantees."
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": (
+                        "Buat saran penanganan tanaman aktif berdasarkan histori unsur hara 1 jam terakhir dan prakiraan cuaca BMKG 3 hari ke depan. "
+                        "Kembalikan hanya sesuai schema.\n\n"
+                        + payload.model_dump_json(indent=2)
+                    ),
+                },
+            ],
+            response_format=CareAdviceSchema,
         )
         parsed = completion.choices[0].message.parsed
         if parsed is None:
@@ -270,5 +368,171 @@ class ZoneStrategicAdvisor:
             return None
         try:
             return float(value)
+        except (TypeError, ValueError):
+            return None
+
+    def _generate_care_fallback(self, payload: CareAdviceRequest) -> dict[str, Any]:
+        snapshot = payload.current_snapshot or self._aggregate_history(payload)
+        ph = self._nested_mean(snapshot, "ph")
+        nitrogen = self._nested_mean(snapshot, "nitrogen")
+        phosphorus = self._nested_mean(snapshot, "phosphorus")
+        potassium = self._nested_mean(snapshot, "potassium")
+        moisture = self._nested_mean(snapshot, "soil_moisture")
+        rainy_days = self._rainy_day_count(payload.weather_forecast)
+        max_temperature = self._max_forecast_temperature(payload.weather_forecast)
+
+        recommendations: list[dict[str, Any]] = []
+        observation_focus: list[str] = []
+        risk_flags: list[str] = []
+        urgency = "medium"
+
+        if moisture is not None and moisture < 25:
+            irrigation_detail = "Kelembapan tanah 1 jam terakhir rendah."
+            if rainy_days > 0:
+                irrigation_detail += " Namun prakiraan BMKG menunjukkan potensi hujan, jadi lakukan irigasi ringan dan ukur ulang sebelum menambah volume air."
+            else:
+                irrigation_detail += " Jalankan irigasi ringan 10-15 menit, lalu ukur ulang setelah 30-60 menit."
+            recommendations.append(
+                {
+                    "title": "Atur irigasi bertahap",
+                    "detail": irrigation_detail,
+                    "priority": "high",
+                    "timing_hours": 1,
+                }
+            )
+            observation_focus.append("Pantau rebound kelembapan setelah irigasi.")
+            risk_flags.append("Kelembapan rendah dapat memicu stres air.")
+            urgency = "high"
+
+        if rainy_days >= 2:
+            recommendations.append(
+                {
+                    "title": "Antisipasi pencucian unsur hara",
+                    "detail": "Prakiraan BMKG menunjukkan peluang hujan pada beberapa hari ke depan. Hindari aplikasi pupuk mudah larut tepat sebelum hujan deras dan periksa drainase zona.",
+                    "priority": "medium",
+                    "timing_hours": 24,
+                }
+            )
+            observation_focus.append("Pantau perubahan NPK setelah hujan dan cek genangan.")
+            risk_flags.append("Hujan berulang dapat mencuci unsur hara dan menurunkan efektivitas pemupukan.")
+
+        if max_temperature is not None and max_temperature >= 33:
+            observation_focus.append("Pantau stres panas dan kebutuhan air pada siang hari.")
+            risk_flags.append("Suhu tinggi berpotensi meningkatkan evapotranspirasi.")
+
+        if ph is not None and ph < 5.8:
+            recommendations.append(
+                {
+                    "title": "Evaluasi koreksi pH secara bertahap",
+                    "detail": "pH cenderung asam. Hindari koreksi besar mendadak; validasi ulang titik sampling sebelum pengapuran.",
+                    "priority": "medium",
+                    "timing_hours": 24,
+                }
+            )
+            observation_focus.append("Pantau pH dan gejala daun muda.")
+            risk_flags.append("pH asam dapat menekan ketersediaan fosfor.")
+
+        if phosphorus is not None and phosphorus < 18:
+            recommendations.append(
+                {
+                    "title": "Prioritaskan evaluasi fosfor",
+                    "detail": f"Fosfor rendah untuk {payload.current_crop}. Sesuaikan pemupukan berdasarkan fase tanaman dan rekomendasi agronom setempat.",
+                    "priority": "high",
+                    "timing_hours": 24,
+                }
+            )
+            observation_focus.append("Pantau vigor awal, akar, dan fase generatif.")
+            risk_flags.append("Fosfor rendah berisiko menghambat pertumbuhan.")
+            urgency = "high"
+
+        if nitrogen is not None and nitrogen < 75:
+            recommendations.append(
+                {
+                    "title": "Tinjau nitrogen susulan",
+                    "detail": "Nitrogen relatif rendah. Cek warna daun dan riwayat pemupukan sebelum aplikasi susulan.",
+                    "priority": "medium",
+                    "timing_hours": 24,
+                }
+            )
+            observation_focus.append("Pantau warna daun dan pertumbuhan vegetatif.")
+
+        if potassium is not None and potassium < 65:
+            observation_focus.append("Pantau vigor batang dan ketahanan tanaman terhadap stres.")
+            risk_flags.append("Kalium rendah dapat menurunkan toleransi stres tanaman.")
+
+        if not recommendations:
+            recommendations.append(
+                {
+                    "title": "Pertahankan pemantauan rutin",
+                    "detail": "Histori 1 jam terakhir tidak menunjukkan kondisi kritis. Lanjutkan sampling berkala dan observasi visual tanaman.",
+                    "priority": "low",
+                    "timing_hours": 24,
+                }
+            )
+            urgency = "low"
+
+        if not observation_focus:
+            observation_focus.append("Lanjutkan pemantauan pH, NPK, dan kelembapan.")
+
+        summary = (
+            f"Saran untuk {payload.current_crop} di {payload.zone_name or payload.zone_id} "
+            f"berdasarkan {len(payload.nutrient_history)} titik histori {payload.history_window_minutes} menit terakhir."
+        )
+
+        return {
+            "summary": summary,
+            "urgency": urgency,
+            "recommendations": recommendations,
+            "observation_focus": list(dict.fromkeys(observation_focus)),
+            "risk_flags": list(dict.fromkeys(risk_flags)),
+        }
+
+    @staticmethod
+    def _rainy_day_count(weather_forecast: dict[str, Any] | None) -> int:
+        if not weather_forecast:
+            return 0
+        days = weather_forecast.get("daily_forecast", [])
+        if not isinstance(days, list):
+            return 0
+        return sum(1 for day in days if isinstance(day, dict) and bool(day.get("rain_risk")))
+
+    @staticmethod
+    def _max_forecast_temperature(weather_forecast: dict[str, Any] | None) -> float | None:
+        if not weather_forecast:
+            return None
+        days = weather_forecast.get("daily_forecast", [])
+        values = [
+            float(day["temperature_max_c"])
+            for day in days
+            if isinstance(day, dict) and day.get("temperature_max_c") is not None
+        ]
+        return max(values) if values else None
+
+    @staticmethod
+    def _aggregate_history(payload: CareAdviceRequest) -> dict[str, Any]:
+        metrics = ["ph", "nitrogen", "phosphorus", "potassium", "soil_moisture"]
+        aggregated: dict[str, Any] = {"sample_count": len(payload.nutrient_history)}
+        for metric in metrics:
+            values = [
+                float(value)
+                for point in payload.nutrient_history
+                if (value := getattr(point, metric)) is not None
+            ]
+            if not values:
+                aggregated[metric] = {"mean": None, "min": None, "max": None, "range": None}
+                continue
+            aggregated[metric] = {
+                "mean": round(sum(values) / len(values), 2),
+                "min": round(min(values), 2),
+                "max": round(max(values), 2),
+                "range": round(max(values) - min(values), 2),
+            }
+        return aggregated
+
+    @staticmethod
+    def _nested_mean(snapshot: dict[str, Any], metric: str) -> float | None:
+        value = snapshot.get(metric, {}).get("mean") if isinstance(snapshot.get(metric), dict) else None
+        try:
+            return float(value) if value is not None else None
         except (TypeError, ValueError):
             return None

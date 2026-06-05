@@ -68,6 +68,91 @@ def test_zone_strategy_endpoint_returns_fallback_strategy(client: TestClient) ->
     assert body["strategic_insight"]["recommended_actions"]
 
 
+def test_care_advice_endpoint_matches_laravel_contract(client: TestClient) -> None:
+    response = client.post(
+        "/advice/care",
+        json={
+            "zone_id": "1",
+            "zone_name": "Zona Alpha",
+            "current_crop": "Jagung",
+            "history_window_minutes": 60,
+            "nutrient_history": [
+                {
+                    "timestamp": "2026-06-01T08:00:00+07:00",
+                    "ph": 6.1,
+                    "nitrogen": 82,
+                    "phosphorus": 17,
+                    "potassium": 76,
+                    "soil_moisture": 24,
+                },
+                {
+                    "timestamp": "2026-06-01T08:30:00+07:00",
+                    "ph": 6.0,
+                    "nitrogen": 80,
+                    "phosphorus": 18,
+                    "potassium": 75,
+                    "soil_moisture": 23,
+                },
+            ],
+            "current_snapshot": {
+                "ph": {"mean": 6.05},
+                "nitrogen": {"mean": 81},
+                "phosphorus": {"mean": 17.5},
+                "potassium": {"mean": 75.5},
+                "soil_moisture": {"mean": 23.5},
+            },
+            "threshold_context": {"trigger_reason": "critical_low_soil_moisture"},
+            "weather_forecast": {
+                "source": "BMKG",
+                "daily_forecast": [
+                    {
+                        "date": "2026-06-05",
+                        "summary": "Hujan Ringan",
+                        "temperature_max_c": 31,
+                        "rain_risk": True,
+                    },
+                    {
+                        "date": "2026-06-06",
+                        "summary": "Hujan Sedang",
+                        "temperature_max_c": 33,
+                        "rain_risk": True,
+                    },
+                ],
+            },
+        },
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["provider"] == "local_fallback"
+    assert body["summary"]
+    assert body["urgency"] in {"low", "medium", "high"}
+    assert body["recommendations"][0]["title"]
+    assert body["observation_focus"]
+    assert body["risk_flags"]
+
+
+def test_weather_forecast_endpoint_returns_monthly_temperature_forecast(client: TestClient) -> None:
+    response = client.post(
+        "/forecast/weather",
+        json={
+            "zone_id": "tanah-ijen",
+            "latitude": -8.0582181,
+            "longitude": 114.2417552,
+            "months": 3,
+            "crop_name": "Jagung",
+        },
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "success"
+    assert body["zone_id"] == "tanah-ijen"
+    assert body["horizon_months"] == 3
+    assert len(body["forecast"]) == 3
+    assert "suhu_maksimum_c" in body["forecast"][0]
+    assert body["model_info"]["model_type"] == "ARIMA"
+    assert body["warnings"]
+
+
 def test_predict_zone_rejects_too_few_samples(client: TestClient) -> None:
     response = client.post("/predict/zone", json=_valid_zone_payload(sample_count=2))
     assert response.status_code == 400

@@ -1,0 +1,9 @@
+numpy
+pandas
+statsmodels
+scikit-learn
+joblib
+xgboost
+lightgbm
+catboost
+pytest

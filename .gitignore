@@ -18,5 +18,8 @@ __pycache__/
 *.sqlite3
 .phpunit.result.cache
 
+# Local-only project brief and generated documentation assets
+docs/
+
 # The Laravel interface is currently maintained as a separate git worktree.
 INTERFACE/
